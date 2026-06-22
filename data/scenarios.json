@@ -1,0 +1,134 @@
+[
+  {
+    "id": "SCN-001",
+    "title": "Quarter-End Growth Push",
+    "category": "Retail Lending",
+    "difficulty": "Medium",
+    "timePressure": "High",
+    "summary": "A large SME loan pipeline can help close the quarter, but several files have incomplete verification trails.",
+    "facts": [
+      "Sales leadership is pushing for same-day sanction.",
+      "Two files have missing income-supporting annexures.",
+      "Competitors are approving similar deals aggressively."
+    ],
+    "bestProfile": {
+      "risk": 35,
+      "compliance": 85,
+      "growth": 70,
+      "aiTrust": 55
+    },
+    "recommendedAction": "Approve with conditions",
+    "redFlags": ["Documentation gap", "Pressure from revenue target"],
+    "coachingTip": "Reward participants who preserve growth but insist on documented conditional controls."
+  },
+  {
+    "id": "SCN-002",
+    "title": "Suspicious Vendor Onboarding",
+    "category": "Procurement",
+    "difficulty": "High",
+    "timePressure": "Medium",
+    "summary": "A strategic vendor offers deep discounts, but KYC metadata and sanction screening have conflicting records.",
+    "facts": [
+      "Procurement says delay will affect a launch milestone.",
+      "Vendor address and bank account ownership mismatch in two systems.",
+      "Compliance queue is already overloaded."
+    ],
+    "bestProfile": {
+      "risk": 20,
+      "compliance": 95,
+      "growth": 40,
+      "aiTrust": 45
+    },
+    "recommendedAction": "Escalate",
+    "redFlags": ["Data mismatch", "Third-party risk"],
+    "coachingTip": "Strong answers explain why escalations protect the business from downstream disruption."
+  },
+  {
+    "id": "SCN-003",
+    "title": "AI Collections Assistant Rollout",
+    "category": "Operations",
+    "difficulty": "Medium",
+    "timePressure": "Low",
+    "summary": "The business wants to launch an AI collections assistant before the audit window closes, but explainability is limited.",
+    "facts": [
+      "Pilot results show 18% improvement in recovery calls.",
+      "Model logs do not fully capture prompt-to-decision reasoning.",
+      "Customer advocacy team worries about fairness complaints."
+    ],
+    "bestProfile": {
+      "risk": 45,
+      "compliance": 80,
+      "growth": 60,
+      "aiTrust": 40
+    },
+    "recommendedAction": "Delay and remediate",
+    "redFlags": ["Explainability gap", "Fairness concern"],
+    "coachingTip": "Top scores should go to participants who propose a staged release with controls."
+  },
+  {
+    "id": "SCN-004",
+    "title": "Cross-Border Payment Exception",
+    "category": "Payments",
+    "difficulty": "High",
+    "timePressure": "High",
+    "summary": "A premium client needs an urgent cross-border release, but the transaction pattern deviates from normal behavior.",
+    "facts": [
+      "Relationship manager says the client may leave if delayed.",
+      "The beneficiary country risk score increased last week.",
+      "Manual review can still happen within four hours."
+    ],
+    "bestProfile": {
+      "risk": 25,
+      "compliance": 92,
+      "growth": 50,
+      "aiTrust": 50
+    },
+    "recommendedAction": "Hold for review",
+    "redFlags": ["AML anomaly", "Client pressure"],
+    "coachingTip": "Reward decisions that prioritize review rather than instant release."
+  },
+  {
+    "id": "SCN-005",
+    "title": "Low-Friction Digital Onboarding",
+    "category": "Customer Experience",
+    "difficulty": "Easy",
+    "timePressure": "Medium",
+    "summary": "Product wants to remove one verification step to improve drop-off, but fraud monitoring is not fully tuned.",
+    "facts": [
+      "Current funnel drop-off is 27% at the identity proof step.",
+      "Fraud team expects a temporary increase in false positives.",
+      "Leadership wants a visible win before the town hall."
+    ],
+    "bestProfile": {
+      "risk": 40,
+      "compliance": 75,
+      "growth": 80,
+      "aiTrust": 60
+    },
+    "recommendedAction": "Pilot with safeguards",
+    "redFlags": ["Control removal", "Leadership optics"],
+    "coachingTip": "Strong players preserve conversion gains while adding fallback checks."
+  },
+  {
+    "id": "SCN-006",
+    "title": "Model Drift in Credit Scoring",
+    "category": "Model Risk",
+    "difficulty": "High",
+    "timePressure": "Medium",
+    "summary": "A credit scoring model still meets business SLAs, but drift indicators and segment bias warnings have increased.",
+    "facts": [
+      "Collections success has improved in two profitable segments.",
+      "A governance review is due next week.",
+      "One regional cluster shows materially worse approval parity."
+    ],
+    "bestProfile": {
+      "risk": 30,
+      "compliance": 90,
+      "growth": 45,
+      "aiTrust": 35
+    },
+    "recommendedAction": "Restrict and recalibrate",
+    "redFlags": ["Bias risk", "Governance deadline"],
+    "coachingTip": "The best responses balance business continuity with immediate safeguards."
+  }
+]
