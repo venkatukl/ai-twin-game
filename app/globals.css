@@ -472,9 +472,10 @@ input[type="range"]::-moz-range-thumb {
 }
 .setup-preview-media {
   position: relative;
-  min-height: 0;
+  min-height: 280px;
   overflow: hidden;
   background: #0f172a;
+  height: 100%;
 }
 .setup-preview-image {
   width: 100%;
@@ -503,13 +504,10 @@ input[type="range"]::-moz-range-thumb {
 
 /* ─── Camera ───────────────────────────────────────────────────────────────── */
 .camera-stage {
-  position: relative;
-  width: 100%; height: 100%;
+  position: absolute;
+  inset: 0;
   overflow: hidden;
   background: #0f172a;
-  /* Ensure camera-stage fills setup-preview-media completely */
-  display: flex;
-  align-items: stretch;
 }
 .camera-stage video {
   width: 100%; height: 100%;
@@ -519,18 +517,22 @@ input[type="range"]::-moz-range-thumb {
 }
 .camera-guide {
   position: absolute;
-  /* Give breathing room top/bottom so guide frame + text never clip */
-  top: 0; left: 0; right: 0; bottom: 0;
+  inset: 0;
   pointer-events: none;
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* Push frame down slightly from dead-center so text fits below */
   justify-content: center;
-  padding: 36px 16px 48px; /* top | sides | bottom — reserves space for text */
+  /*
+    Vertical padding:
+    - top: 16px so frame never clips at top edge
+    - bottom: 48px reserves room for the hint text below the frame
+    These are padding inside the flex container, not offsets — the frame
+    centres within the remaining space, always fully visible.
+  */
+  padding: 16px 20px 48px;
 }
 
-/* Dark vignette outside the guide box */
 .camera-guide::before {
   content: '';
   position: absolute;
@@ -541,33 +543,38 @@ input[type="range"]::-moz-range-thumb {
 .camera-guide-frame {
   position: relative;
   z-index: 1;
-  /* Use min() so frame never exceeds available height */
-  width: min(78%, 280px);
+  /*
+    Size by height, not width:
+    Use a height that fits within the padded container (min-height 280px - 16px top - 48px bottom = ~216px usable).
+    aspect-ratio keeps it square. max-width stops it getting too wide on tall containers.
+  */
+  height: min(68%, 320px);
   aspect-ratio: 1 / 1;
-  border: 2px solid rgba(255, 255, 255, .9);
-  border-radius: 20px;
+  max-width: 85%;
+  border: 2px solid rgba(255, 255, 255, .92);
+  border-radius: 18px;
   box-shadow:
     0 0 0 9999px rgba(9, 15, 28, .55),
     0 0 0 3px rgba(247, 201, 72, .18) inset;
   background:
-    linear-gradient(to right, rgba(247,201,72,.6) 2px, transparent 2px) 0 0 / 18px 18px no-repeat,
-    linear-gradient(to bottom, rgba(247,201,72,.6) 2px, transparent 2px) 0 0 / 18px 18px no-repeat,
-    linear-gradient(to left, rgba(247,201,72,.6) 2px, transparent 2px) 100% 0 / 18px 18px no-repeat,
-    linear-gradient(to bottom, rgba(247,201,72,.6) 2px, transparent 2px) 100% 0 / 18px 18px no-repeat,
-    linear-gradient(to right, rgba(247,201,72,.6) 2px, transparent 2px) 0 100% / 18px 18px no-repeat,
-    linear-gradient(to top, rgba(247,201,72,.6) 2px, transparent 2px) 0 100% / 18px 18px no-repeat,
-    linear-gradient(to left, rgba(247,201,72,.6) 2px, transparent 2px) 100% 100% / 18px 18px no-repeat,
-    linear-gradient(to top, rgba(247,201,72,.6) 2px, transparent 2px) 100% 100% / 18px 18px no-repeat;
+    linear-gradient(to right, rgba(247,201,72,.65) 2px, transparent 2px) 0 0 / 16px 16px no-repeat,
+    linear-gradient(to bottom, rgba(247,201,72,.65) 2px, transparent 2px) 0 0 / 16px 16px no-repeat,
+    linear-gradient(to left, rgba(247,201,72,.65) 2px, transparent 2px) 100% 0 / 16px 16px no-repeat,
+    linear-gradient(to bottom, rgba(247,201,72,.65) 2px, transparent 2px) 100% 0 / 16px 16px no-repeat,
+    linear-gradient(to right, rgba(247,201,72,.65) 2px, transparent 2px) 0 100% / 16px 16px no-repeat,
+    linear-gradient(to top, rgba(247,201,72,.65) 2px, transparent 2px) 0 100% / 16px 16px no-repeat,
+    linear-gradient(to left, rgba(247,201,72,.65) 2px, transparent 2px) 100% 100% / 16px 16px no-repeat,
+    linear-gradient(to top, rgba(247,201,72,.65) 2px, transparent 2px) 100% 100% / 16px 16px no-repeat;
   flex-shrink: 0;
 }
+
 .camera-guide-text {
   position: relative;
   z-index: 1;
-  /* Sits below the frame, always within the padded container */
-  margin-top: 12px;
+  margin-top: 10px;
   padding: 5px 14px;
   border-radius: 999px;
-  background: rgba(10, 16, 28, .85);
+  background: rgba(10, 16, 28, .88);
   color: white;
   font-size: 11px;
   font-weight: 700;
@@ -708,22 +715,111 @@ input[type="range"]::-moz-range-thumb {
 .spin { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ─── Responsive ───────────────────────────────────────────────────────────── */
-@media (max-width: 1180px) {
-  html, body, .page-shell { height: 100%; overflow: hidden; }
-  .grid { grid-template-columns: 1fr; overflow-y: auto; }
-  .setup-grid { grid-template-columns: 1fr; }
-  .scenario-actions { gap: 8px; }
-  .right-card { order: 3; }
+/* ─── Setup toolbar button overflow fix ────────────────────────────────────── */
+/* Prevent "Generate avatar" text clipping in the 3-col toolbar */
+.setup-toolbar .primary-btn,
+.setup-toolbar .secondary-btn {
+  font-size: 12px;
+  padding: 10px 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
-@media (max-width: 768px) {
-  .page-shell { padding: 10px; }
-  .brand { font-size: 20px; }
-  .section-title { font-size: 17px; }
-  .setup-modal-header h2 { font-size: 22px; }
-  .setup-toolbar { grid-template-columns: 1fr; }
-  .active-avatar-image { height: 160px; }
-  .scenario-actions { flex-direction: column; }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   RESPONSIVE BREAKPOINTS
+   1440px+   : wide desktop — slightly larger side panels
+   1024–1280px: standard laptop — narrower side panels
+   768–1023px : tablet landscape / small laptop — 2-col, scrollable
+   400–767px  : mobile — single column, bottom-sheet modal
+   <400px     : small phones — collapsed toolbar
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+@media (min-width: 1440px) {
+  .grid { grid-template-columns: 310px minmax(0, 1fr) 340px; }
+}
+
+@media (max-width: 1280px) {
+  .grid { grid-template-columns: 260px minmax(0, 1fr) 280px; gap: 12px; }
+}
+
+@media (max-width: 1023px) {
+  html, body { overflow: auto; height: auto; }
+  .page-shell { height: auto; min-height: 100svh; overflow: visible; }
+  .grid {
+    grid-template-columns: 240px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    overflow: visible;
+    flex: none;
+    min-height: unset;
+  }
+  .left-card  { grid-column: 1; grid-row: 1; height: auto; min-height: unset; }
+  .center-card { grid-column: 2; grid-row: 1; height: auto; min-height: unset; }
+  .right-card  { grid-column: 1 / -1; grid-row: 2; height: auto; min-height: unset; }
+  .card { overflow: visible; min-height: unset; }
+  .simplified-left-card { overflow: visible; }
+  .scenario-content { overflow: visible; min-height: unset; flex: none; }
+  .right-card .score-list { overflow: visible; flex: none; min-height: unset; }
+  .setup-grid { grid-template-columns: 1fr; gap: 14px; }
+  .setup-modal { height: auto; max-height: 92svh; overflow-y: auto; }
+}
+
+@media (max-width: 767px) {
+  html, body { overflow: auto; height: auto; }
+  .page-shell { height: auto; min-height: 100svh; overflow: visible; padding: 10px; }
+  .brand { font-size: 18px; }
+  .subtle { font-size: 11px; }
+  .section-title { font-size: 16px; }
+  .grid {
+    grid-template-columns: 1fr;
+    overflow: visible;
+    flex: none;
+    min-height: unset;
+    gap: 10px;
+  }
+  .left-card, .center-card, .right-card {
+    grid-column: unset; grid-row: unset;
+    height: auto; min-height: unset;
+  }
+  .right-card { order: 3; }
+  .card { overflow: visible; min-height: unset; }
+  .simplified-left-card { overflow: visible; }
+  .active-avatar-image { height: 200px; }
+  .scenario-content { overflow: visible; min-height: unset; flex: none; }
+  .choice-grid { grid-template-columns: 1fr 1fr; }
+  .choice:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .scenario-footer { padding-top: 10px; }
+  .scenario-actions { flex-direction: column-reverse; gap: 8px; }
   .scenario-actions .primary-btn,
-  .scenario-actions .secondary-btn { width: 100%; }
+  .scenario-actions .secondary-btn { width: 100%; text-align: center; justify-content: center; }
+  .right-card .score-list { overflow: visible; flex: none; min-height: unset; }
+
+  /* Bottom-sheet modal */
+  .setup-modal-backdrop {
+    padding: 0;
+    align-items: flex-end;
+    overflow-y: auto;
+    place-items: unset;
+  }
+  .setup-modal {
+    width: 100%;
+    border-radius: 20px 20px 0 0;
+    height: auto;
+    max-height: 94svh;
+    overflow-y: auto;
+  }
+  .setup-modal-header { padding: 18px 16px 10px; }
+  .setup-modal-header h2 { font-size: 22px; }
+  .setup-grid { grid-template-columns: 1fr; padding: 8px 16px 14px; gap: 12px; }
+  .setup-modal-footer { padding: 10px 16px 20px; }
+  .setup-toolbar { grid-template-columns: 42px 1fr 1fr; gap: 6px; }
+  .camera-guide-frame { height: min(65%, 240px); }
+}
+
+@media (max-width: 399px) {
+  .brand { font-size: 16px; }
+  .choice-grid { grid-template-columns: 1fr; }
+  .choice:last-child:nth-child(odd) { grid-column: unset; }
+  .setup-toolbar { grid-template-columns: 42px 1fr; grid-template-rows: auto auto; }
+  .setup-toolbar .primary-btn { grid-column: 1 / -1; }
 }

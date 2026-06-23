@@ -1,134 +1,401 @@
 [
   {
-    "id": "SCN-001",
-    "title": "Quarter-End Growth Push",
-    "category": "Retail Lending",
+    "id": "scn-001",
+    "title": "Unverified AI Credit Model Goes Live",
+    "category": "AI Risk",
+    "difficulty": "Hard",
+    "timePressure": "High",
+    "summary": "Your data science team wants to deploy a new AI-driven credit scoring model that claims 23% better default prediction. It has not been independently validated and was trained on 18 months of data during an atypical economic cycle.",
+    "facts": [
+      "Model outperforms legacy system in back-testing by 23%",
+      "Training data spans Feb 2022 – Aug 2023, a period of unusual rate volatility",
+      "No independent model validation has been completed",
+      "Regulator requires model risk management sign-off before go-live",
+      "Commercial team is forecasting $4M revenue uplift in Q1"
+    ],
+    "recommendedAction": "Hold",
+    "redFlags": ["No independent validation", "Atypical training data", "Regulatory sign-off missing"],
+    "coachingTip": "Deploying an unvalidated model in a regulated context exposes the firm to supervisory action. Revenue upside does not offset model risk. Insist on independent validation before go-live.",
+    "bestProfile": { "risk": 25, "compliance": 90, "growth": 45, "aiTrust": 40, "aiCost": 55 }
+  },
+  {
+    "id": "scn-002",
+    "title": "Customer Data Sold to Third-Party Advertiser",
+    "category": "Data Ethics",
+    "difficulty": "Hard",
+    "timePressure": "Medium",
+    "summary": "A marketing partnership proposal would share anonymised transaction patterns with a retail advertiser for targeting. Legal says the existing privacy policy technically permits it. The DPO is not comfortable.",
+    "facts": [
+      "Privacy policy clause 4.3 permits sharing of 'aggregated behavioural data' with partners",
+      "Data Privacy Officer has raised a formal objection in writing",
+      "Advertiser will pay $2.1M annually for the data feed",
+      "Similar arrangements at two competitors triggered ICO investigations last year",
+      "Re-consent campaign would cost $340K and take 3 months"
+    ],
+    "recommendedAction": "Reject",
+    "redFlags": ["Formal DPO objection", "ICO investigations at peers", "Ethical risk despite legality"],
+    "coachingTip": "Technical legality is not the same as ethical or regulatory safety. A written DPO objection is a red flag that demands escalation, not suppression. The reputational downside vastly outweighs the revenue.",
+    "bestProfile": { "risk": 20, "compliance": 95, "growth": 30, "aiTrust": 50, "aiCost": 60 }
+  },
+  {
+    "id": "scn-003",
+    "title": "Overseas Expansion Without Local Licence",
+    "category": "Regulatory",
+    "difficulty": "Hard",
+    "timePressure": "High",
+    "summary": "The CEO wants to soft-launch the lending product in Brazil by end of quarter to capture market share before a competitor. Legal confirms a full Banco Central licence will take 9–12 months to obtain.",
+    "facts": [
+      "Competitor is rumoured to launch in Brazil within 60 days",
+      "Banco Central licence timeline: 9–12 months minimum",
+      "Operating without a licence carries fines up to 2% of global revenue",
+      "A local banking-as-a-service partner could provide a licensed wrapper within 6 weeks",
+      "Board has approved the expansion but not reviewed the licensing risk"
+    ],
+    "recommendedAction": "Approve with conditions",
+    "redFlags": ["Operating without licence risk", "Board not reviewing licensing risk"],
+    "coachingTip": "Speed matters in market entry but not at the cost of unlicensed operation. The BaaS partner route is the right condition — it achieves commercial goals within a compliant structure.",
+    "bestProfile": { "risk": 50, "compliance": 75, "growth": 70, "aiTrust": 55, "aiCost": 50 }
+  },
+  {
+    "id": "scn-004",
+    "title": "Algorithmic Pricing Bias Flagged in Audit",
+    "category": "AI Risk",
+    "difficulty": "Hard",
+    "timePressure": "Medium",
+    "summary": "An internal audit finds that the automated loan pricing engine charges customers in postcodes with high ethnic minority populations 0.4% more on average, even after controlling for credit risk factors.",
+    "facts": [
+      "Audit finding is marked 'High' severity",
+      "Pricing differential persists after controlling for LTV, income and credit score",
+      "The model was not specifically trained on ethnicity but postcode acts as a proxy",
+      "Affected portfolio represents 18% of new originations",
+      "External legal counsel says this likely constitutes indirect discrimination under the Equality Act"
+    ],
+    "recommendedAction": "Escalate",
+    "redFlags": ["Indirect discrimination", "High severity audit finding", "Proxy bias via postcode"],
+    "coachingTip": "Algorithmic indirect discrimination is a regulatory and legal emergency, not a roadmap item. This requires immediate escalation to the Board, suspension of the affected pricing engine, and proactive regulator engagement.",
+    "bestProfile": { "risk": 15, "compliance": 95, "growth": 25, "aiTrust": 35, "aiCost": 60 }
+  },
+  {
+    "id": "scn-005",
+    "title": "CFO Requests Off-Balance-Sheet SPV",
+    "category": "Financial Controls",
+    "difficulty": "Hard",
+    "timePressure": "Low",
+    "summary": "The CFO proposes moving $180M of non-performing loans into a newly created SPV to improve the reported CET1 ratio ahead of an investor roadshow next month.",
+    "facts": [
+      "NPL ratio currently at 4.8%, above the 4.0% peer average",
+      "SPV structure has not been reviewed by external auditors",
+      "Investor roadshow is scheduled in 28 days",
+      "Under IFRS 9 the transfer may not achieve derecognition",
+      "Chief Accounting Officer has not signed off on the accounting treatment"
+    ],
+    "recommendedAction": "Reject",
+    "redFlags": ["Unreviewed SPV structure", "Potential misstatement risk", "Auditor sign-off missing"],
+    "coachingTip": "Off-balance-sheet structures designed to flatter reported capital ratios before investor events are a textbook governance red flag. Without auditor sign-off on derecognition, this risks material misstatement.",
+    "bestProfile": { "risk": 15, "compliance": 95, "growth": 20, "aiTrust": 50, "aiCost": 65 }
+  },
+  {
+    "id": "scn-006",
+    "title": "AI Chatbot Giving Financial Advice",
+    "category": "AI Risk",
+    "difficulty": "Medium",
+    "timePressure": "Medium",
+    "summary": "Your customer service AI chatbot has started providing specific investment recommendations to retail customers — 'You should move into fixed income given your age' — rather than generic information. It was not designed or licensed to do this.",
+    "facts": [
+      "Chatbot deployed 4 months ago for FAQ and account queries only",
+      "17 logged instances of specific investment advice in the past 30 days",
+      "Firm holds an FCA general insurance licence, not an investment advisory licence",
+      "One customer has emailed to say they acted on the chatbot's advice and lost money",
+      "Product team estimates a fix will take 3 weeks"
+    ],
+    "recommendedAction": "Hold",
+    "redFlags": ["Unlicensed investment advice", "Customer harm reported", "Licence mismatch"],
+    "coachingTip": "Providing unlicensed investment advice is a regulatory breach regardless of whether it came from a human or an AI. The chatbot must be taken offline or restricted immediately while a fix is built — not in 3 weeks.",
+    "bestProfile": { "risk": 20, "compliance": 92, "growth": 35, "aiTrust": 40, "aiCost": 55 }
+  },
+  {
+    "id": "scn-007",
+    "title": "Open Banking Partnership with Unvetted Startup",
+    "category": "Third-Party Risk",
     "difficulty": "Medium",
     "timePressure": "High",
-    "summary": "A large SME loan pipeline can help close the quarter, but several files have incomplete verification trails.",
+    "summary": "A fintech startup wants to integrate via your Open Banking API to offer budgeting tools. The commercial team wants to go live in 2 weeks. Third-party risk assessment has not started.",
     "facts": [
-      "Sales leadership is pushing for same-day sanction.",
-      "Two files have missing income-supporting annexures.",
-      "Competitors are approving similar deals aggressively."
+      "Startup is 18 months old, seed-funded, no prior bank partnerships",
+      "Proposed integration would access read-only transaction data for 30,000 customers",
+      "Third-party risk assessment process typically takes 6–8 weeks",
+      "Open Banking regulations require you to provide API access to licensed TPPs",
+      "Startup holds a valid FCA Payment Institution licence"
     ],
-    "bestProfile": {
-      "risk": 35,
-      "compliance": 85,
-      "growth": 70,
-      "aiTrust": 55
-    },
     "recommendedAction": "Approve with conditions",
-    "redFlags": ["Documentation gap", "Pressure from revenue target"],
-    "coachingTip": "Reward participants who preserve growth but insist on documented conditional controls."
+    "redFlags": ["No due diligence completed", "Compressed timeline", "Startup untested"],
+    "coachingTip": "The startup is licensed, so you cannot unreasonably block access under PSD2. The right condition is a compressed but genuine due diligence process — security questionnaire, pen test results, and data processing agreement — before go-live.",
+    "bestProfile": { "risk": 45, "compliance": 75, "growth": 60, "aiTrust": 60, "aiCost": 50 }
   },
   {
-    "id": "SCN-002",
-    "title": "Suspicious Vendor Onboarding",
-    "category": "Procurement",
-    "difficulty": "High",
-    "timePressure": "Medium",
-    "summary": "A strategic vendor offers deep discounts, but KYC metadata and sanction screening have conflicting records.",
+    "id": "scn-008",
+    "title": "Trader Exceeds Risk Limits, Books Record Profit",
+    "category": "Market Risk",
+    "difficulty": "Hard",
+    "timePressure": "High",
+    "summary": "A senior FX trader exceeded their $50M VaR limit by 3x on a directional bet that has so far generated $12M in profit. They are asking for the breach to be retrospectively approved.",
     "facts": [
-      "Procurement says delay will affect a launch milestone.",
-      "Vendor address and bank account ownership mismatch in two systems.",
-      "Compliance queue is already overloaded."
+      "Trader's limit: $50M VaR. Actual position: $148M VaR",
+      "Position is currently profitable at $12M mark-to-market",
+      "Breach was not reported in real-time as required by trading policy",
+      "Market conditions remain volatile — EUR/USD moved 180 bps in 24 hours",
+      "This is the trader's second limit breach in 12 months"
     ],
-    "bestProfile": {
-      "risk": 20,
-      "compliance": 95,
-      "growth": 40,
-      "aiTrust": 45
-    },
-    "recommendedAction": "Escalate",
-    "redFlags": ["Data mismatch", "Third-party risk"],
-    "coachingTip": "Strong answers explain why escalations protect the business from downstream disruption."
+    "recommendedAction": "Reject",
+    "redFlags": ["Repeated limit breach", "Policy violation", "Retrospective approval request"],
+    "coachingTip": "Profit does not legitimise a limit breach. Retrospective approval destroys the credibility of risk controls and creates moral hazard. The position must be unwound to within limits and the breach reported through proper channels.",
+    "bestProfile": { "risk": 20, "compliance": 90, "growth": 30, "aiTrust": 50, "aiCost": 60 }
   },
   {
-    "id": "SCN-003",
-    "title": "AI Collections Assistant Rollout",
-    "category": "Operations",
+    "id": "scn-009",
+    "title": "AI-Generated KYC Documents Bypass Detection",
+    "category": "Fraud & AML",
+    "difficulty": "Hard",
+    "timePressure": "High",
+    "summary": "Your fraud team has discovered that AI-generated synthetic identity documents are successfully passing your automated KYC checks. At least 340 accounts opened in the last 60 days are suspected synthetic.",
+    "facts": [
+      "340 suspect accounts identified, totalling $2.4M in deposits",
+      "AI document detection model has a 94% accuracy rate but is not catching newer generation fakes",
+      "Accounts show structuring behaviour consistent with money laundering",
+      "SAR filing deadline under POCA is 7 days from suspicion arising",
+      "Vendor has a patch available but requires 2-week deployment window"
+    ],
+    "recommendedAction": "Escalate",
+    "redFlags": ["Synthetic identity fraud", "AML structuring behaviour", "Detection model failure"],
+    "coachingTip": "This is an active AML failure with statutory reporting obligations. Immediate escalation to the MLRO, SAR filings, and account freezes must happen within the legal window — not after the vendor deploys a patch.",
+    "bestProfile": { "risk": 15, "compliance": 95, "growth": 20, "aiTrust": 45, "aiCost": 55 }
+  },
+  {
+    "id": "scn-010",
+    "title": "Board Requests AI to Automate Credit Committee",
+    "category": "Governance",
     "difficulty": "Medium",
     "timePressure": "Low",
-    "summary": "The business wants to launch an AI collections assistant before the audit window closes, but explainability is limited.",
+    "summary": "The Board wants to use an LLM to automate the Credit Committee approval process for SME loans under $500K, removing human review entirely to cut costs by $1.8M annually.",
     "facts": [
-      "Pilot results show 18% improvement in recovery calls.",
-      "Model logs do not fully capture prompt-to-decision reasoning.",
-      "Customer advocacy team worries about fairness complaints."
+      "SME loans under $500K represent 6,200 decisions per year",
+      "Current Credit Committee approval adds 3-day turnaround",
+      "LLM has been tested on 200 historical cases with 88% alignment to human decisions",
+      "Regulatory guidance requires 'meaningful human oversight' for credit decisions",
+      "12% of the test cases where LLM disagreed with humans involved vulnerable customers"
     ],
-    "bestProfile": {
-      "risk": 45,
-      "compliance": 80,
-      "growth": 60,
-      "aiTrust": 40
-    },
-    "recommendedAction": "Delay and remediate",
-    "redFlags": ["Explainability gap", "Fairness concern"],
-    "coachingTip": "Top scores should go to participants who propose a staged release with controls."
+    "recommendedAction": "Approve with conditions",
+    "redFlags": ["No human oversight", "Vulnerable customer risk", "Regulatory guidance conflict"],
+    "coachingTip": "Full automation without human review likely breaches regulatory guidance on meaningful oversight. The right condition is a human-in-the-loop for edge cases — flagged by the model — rather than a blanket removal of human review.",
+    "bestProfile": { "risk": 40, "compliance": 80, "growth": 55, "aiTrust": 60, "aiCost": 65 }
   },
   {
-    "id": "SCN-004",
-    "title": "Cross-Border Payment Exception",
-    "category": "Payments",
-    "difficulty": "High",
+    "id": "scn-011",
+    "title": "Whistleblower Report on Bonus Manipulation",
+    "category": "Governance",
+    "difficulty": "Hard",
+    "timePressure": "Medium",
+    "summary": "An anonymous whistleblower alleges that two senior sales managers have been manually overriding CRM data to inflate their teams' performance metrics and qualify for larger bonuses.",
+    "facts": [
+      "Allegation received through the firm's anonymous hotline 3 days ago",
+      "Alleged manipulation covers Q3 and Q4, totalling a potential $280K in inflated bonus payouts",
+      "HR has not yet been notified",
+      "The two named managers are the highest revenue producers in their division",
+      "Whistleblower protection policy requires investigation to begin within 5 business days"
+    ],
+    "recommendedAction": "Escalate",
+    "redFlags": ["Whistleblower allegation", "Bonus manipulation", "HR not notified"],
+    "coachingTip": "Whistleblower reports involving senior employees require immediate escalation to HR, Legal, and the Audit Committee — not informal investigation. Revenue production does not confer protection from misconduct processes.",
+    "bestProfile": { "risk": 25, "compliance": 90, "growth": 35, "aiTrust": 55, "aiCost": 60 }
+  },
+  {
+    "id": "scn-012",
+    "title": "Real-Time Payments Infrastructure Outage",
+    "category": "Operational Risk",
+    "difficulty": "Medium",
     "timePressure": "High",
-    "summary": "A premium client needs an urgent cross-border release, but the transaction pattern deviates from normal behavior.",
+    "summary": "Your real-time payments infrastructure has been down for 2 hours on a Friday afternoon. 14,000 pending transactions are queued. The vendor says a full fix will take 6 more hours.",
     "facts": [
-      "Relationship manager says the client may leave if delayed.",
-      "The beneficiary country risk score increased last week.",
-      "Manual review can still happen within four hours."
+      "14,200 payments queued, including payroll runs for 3 corporate clients",
+      "SLA with corporate clients guarantees same-day settlement",
+      "Manual fallback process exists but can process ~500 transactions per hour",
+      "Regulator's operational resilience rules require incidents to be reported within 4 hours",
+      "Vendor estimates full restoration in 6 hours; manual workaround takes 28 hours for full queue"
     ],
-    "bestProfile": {
-      "risk": 25,
-      "compliance": 92,
-      "growth": 50,
-      "aiTrust": 50
-    },
-    "recommendedAction": "Hold for review",
-    "redFlags": ["AML anomaly", "Client pressure"],
-    "coachingTip": "Reward decisions that prioritize review rather than instant release."
+    "recommendedAction": "Escalate",
+    "redFlags": ["Critical outage", "Regulatory reporting window", "Client SLA breach risk"],
+    "coachingTip": "The 4-hour regulatory reporting window is already running. Escalate to the Incident Management team, notify the regulator proactively, and triage the queue to prioritise payroll and time-critical payments first.",
+    "bestProfile": { "risk": 30, "compliance": 85, "growth": 40, "aiTrust": 55, "aiCost": 50 }
   },
   {
-    "id": "SCN-005",
-    "title": "Low-Friction Digital Onboarding",
-    "category": "Customer Experience",
-    "difficulty": "Easy",
-    "timePressure": "Medium",
-    "summary": "Product wants to remove one verification step to improve drop-off, but fraud monitoring is not fully tuned.",
+    "id": "scn-013",
+    "title": "LLM Used to Draft Regulatory Submissions",
+    "category": "AI Risk",
+    "difficulty": "Medium",
+    "timePressure": "Low",
+    "summary": "The regulatory affairs team has started using an LLM to draft responses to FCA information requests without a formal policy or human review protocol in place.",
     "facts": [
-      "Current funnel drop-off is 27% at the identity proof step.",
-      "Fraud team expects a temporary increase in false positives.",
-      "Leadership wants a visible win before the town hall."
+      "6 FCA responses drafted with LLM assistance in the past quarter",
+      "No formal AI use policy exists for regulatory submissions",
+      "Two responses contained factual inaccuracies that were caught by a junior analyst before submission",
+      "Regulatory affairs head sees productivity gains of 40%",
+      "FCA has published guidance requiring firms to ensure accuracy of all submissions"
     ],
-    "bestProfile": {
-      "risk": 40,
-      "compliance": 75,
-      "growth": 80,
-      "aiTrust": 60
-    },
-    "recommendedAction": "Pilot with safeguards",
-    "redFlags": ["Control removal", "Leadership optics"],
-    "coachingTip": "Strong players preserve conversion gains while adding fallback checks."
+    "recommendedAction": "Approve with conditions",
+    "redFlags": ["No AI use policy", "Factual inaccuracies", "Regulatory guidance risk"],
+    "coachingTip": "LLM-assisted drafting is reasonable but requires a formal review and sign-off protocol. The two near-misses show the risk of deploying without controls. Approve the practice with mandatory senior review before any submission.",
+    "bestProfile": { "risk": 40, "compliance": 80, "growth": 55, "aiTrust": 65, "aiCost": 60 }
   },
   {
-    "id": "SCN-006",
-    "title": "Model Drift in Credit Scoring",
-    "category": "Model Risk",
-    "difficulty": "High",
+    "id": "scn-014",
+    "title": "Acquisition Target Has Undisclosed AML Issues",
+    "category": "M&A Risk",
+    "difficulty": "Hard",
     "timePressure": "Medium",
-    "summary": "A credit scoring model still meets business SLAs, but drift indicators and segment bias warnings have increased.",
+    "summary": "During due diligence on a $240M acquisition target, your team discovers the target has received two informal regulatory enquiries about AML controls in the past 18 months that were not disclosed in the data room.",
     "facts": [
-      "Collections success has improved in two profitable segments.",
-      "A governance review is due next week.",
-      "One regional cluster shows materially worse approval parity."
+      "Acquisition price: $240M, signed term sheet in place",
+      "Two undisclosed AML enquiries from BaFin identified in due diligence",
+      "Target's legal team says the enquiries were 'routine' and resolved informally",
+      "Your own AML team assesses the target's controls as 'below standard'",
+      "Break fee if you withdraw: $8M"
     ],
-    "bestProfile": {
-      "risk": 30,
-      "compliance": 90,
-      "growth": 45,
-      "aiTrust": 35
-    },
-    "recommendedAction": "Restrict and recalibrate",
-    "redFlags": ["Bias risk", "Governance deadline"],
-    "coachingTip": "The best responses balance business continuity with immediate safeguards."
+    "recommendedAction": "Hold",
+    "redFlags": ["Undisclosed AML enquiries", "Below-standard AML controls", "Potential liability risk"],
+    "coachingTip": "Undisclosed regulatory enquiries are a material breach of typical representations and warranties. The $8M break fee is cheap insurance against inheriting an AML liability that could run into tens of millions. Pause and demand full disclosure.",
+    "bestProfile": { "risk": 25, "compliance": 88, "growth": 40, "aiTrust": 50, "aiCost": 60 }
+  },
+  {
+    "id": "scn-015",
+    "title": "Pressure to Meet Quarter-End Loan Targets",
+    "category": "Sales Integrity",
+    "difficulty": "Medium",
+    "timePressure": "High",
+    "summary": "It is the last week of the quarter. The sales team is $14M short of its loan origination target. The regional head is asking credit underwriters to approve 23 borderline applications that were previously declined.",
+    "facts": [
+      "23 applications were declined at initial underwriting stage",
+      "Regional head is proposing a 'director override' to push them through",
+      "Approving all 23 would add $14M to originations and qualify the team for bonuses",
+      "Average credit score of the 23 applicants is 30 points below current policy minimum",
+      "Last year's Q4 vintage, approved under similar override pressure, has a 2.8x higher default rate"
+    ],
+    "recommendedAction": "Reject",
+    "redFlags": ["Override pressure", "Policy breach", "Historical default evidence"],
+    "coachingTip": "Director overrides to meet sales targets at the expense of credit policy are a leading indicator of future losses and a conduct risk issue. Last year's default data is conclusive evidence. Refuse and document the pressure.",
+    "bestProfile": { "risk": 20, "compliance": 90, "growth": 30, "aiTrust": 50, "aiCost": 60 }
+  },
+  {
+    "id": "scn-016",
+    "title": "Cloud Migration Exposes Customer PII",
+    "category": "Cyber & Data",
+    "difficulty": "Hard",
+    "timePressure": "High",
+    "summary": "During a cloud migration, a misconfigured S3 bucket has left 82,000 customer records including names, addresses, and partial account numbers publicly accessible for an unknown period.",
+    "facts": [
+      "82,000 records exposed; exposure window estimated at 72 hours",
+      "No evidence of external access in access logs, but logs only go back 48 hours",
+      "GDPR Article 33 requires breach notification to the ICO within 72 hours of becoming aware",
+      "You became aware 8 hours ago",
+      "PR team advises against customer notification to 'avoid panic'"
+    ],
+    "recommendedAction": "Escalate",
+    "redFlags": ["Misconfigured S3 bucket", "GDPR breach notification clock", "PR suppression advice"],
+    "coachingTip": "The 72-hour ICO notification clock is already running. Escalate immediately to the DPO and Legal. PR advice to suppress customer notification does not override GDPR Article 34 obligations where high risk to individuals exists.",
+    "bestProfile": { "risk": 20, "compliance": 92, "growth": 30, "aiTrust": 50, "aiCost": 55 }
+  },
+  {
+    "id": "scn-017",
+    "title": "Competitor Intelligence Gathered Via Scraping",
+    "category": "Data Ethics",
+    "difficulty": "Medium",
+    "timePressure": "Low",
+    "summary": "The strategy team has been using an automated scraping tool to harvest pricing data and job postings from a competitor's website and LinkedIn, feeding it into a competitive intelligence dashboard.",
+    "facts": [
+      "Tool has been running for 4 months, collecting data daily",
+      "Competitor's terms of service explicitly prohibit automated scraping",
+      "Data is used for internal strategy analysis only, not shared externally",
+      "Legal has not reviewed the practice",
+      "Similar tools used at several peer firms according to industry contacts"
+    ],
+    "recommendedAction": "Hold",
+    "redFlags": ["Breach of competitor ToS", "No legal review", "Potential CFAA exposure"],
+    "coachingTip": "Breach of a website's ToS through automated scraping creates legal exposure — particularly in jurisdictions applying the Computer Fraud and Abuse Act or equivalent. Industry practice is not a legal defence. Pause and get a Legal opinion before continuing.",
+    "bestProfile": { "risk": 35, "compliance": 80, "growth": 50, "aiTrust": 60, "aiCost": 55 }
+  },
+  {
+    "id": "scn-018",
+    "title": "Sanctions Screening Gap Discovered",
+    "category": "Fraud & AML",
+    "difficulty": "Hard",
+    "timePressure": "High",
+    "summary": "A routine systems audit reveals that a batch processing error has caused 4,200 transactions over the past 6 weeks to bypass the sanctions screening engine entirely.",
+    "facts": [
+      "4,200 transactions processed without sanctions screening",
+      "Total value: $38M across 1,100 customer accounts",
+      "Initial review of 200 sample transactions shows no obvious hits, but review is incomplete",
+      "OFAC and HMT require prompt voluntary disclosure of screening failures",
+      "Fix has been deployed; the gap is now closed"
+    ],
+    "recommendedAction": "Escalate",
+    "redFlags": ["Systemic screening failure", "Regulatory disclosure obligation", "Incomplete review"],
+    "coachingTip": "A systemic screening failure of this scale requires mandatory escalation to the MLRO and voluntary disclosure to regulators. Prompt disclosure typically results in significantly reduced penalties compared to discovered non-disclosure.",
+    "bestProfile": { "risk": 15, "compliance": 95, "growth": 20, "aiTrust": 50, "aiCost": 55 }
+  },
+  {
+    "id": "scn-019",
+    "title": "New Product Launch With Incomplete Testing",
+    "category": "Operational Risk",
+    "difficulty": "Medium",
+    "timePressure": "High",
+    "summary": "The product team wants to launch a new Buy Now Pay Later product to 500,000 customers next week. User acceptance testing is 70% complete and two medium-severity defects remain unresolved.",
+    "facts": [
+      "UAT completion: 70%. Target: 100%",
+      "Two open defects: payment allocation error under specific split-payment scenarios; edge case in credit limit calculation",
+      "Marketing campaign already live — 200,000 customers have been pre-notified",
+      "Delay of 2 weeks would complete testing and resolve defects",
+      "BNPL product is subject to new FCA consumer credit rules effective next month"
+    ],
+    "recommendedAction": "Hold",
+    "redFlags": ["Incomplete UAT", "Known defects", "Regulatory rules imminent"],
+    "coachingTip": "Launching with known defects in credit calculation or payment allocation is a consumer harm risk, particularly with new FCA rules imminent. A 2-week delay is far preferable to a post-launch remediation under regulatory scrutiny.",
+    "bestProfile": { "risk": 30, "compliance": 82, "growth": 50, "aiTrust": 55, "aiCost": 55 }
+  },
+  {
+    "id": "scn-020",
+    "title": "AI Model Drift Undetected for 9 Months",
+    "category": "AI Risk",
+    "difficulty": "Hard",
+    "timePressure": "Medium",
+    "summary": "A quarterly model performance review reveals that the fraud detection model's precision has drifted from 91% to 74% over 9 months — meaning significantly more false positives are now blocking legitimate transactions.",
+    "facts": [
+      "Fraud model precision: 91% at deployment, now 74%",
+      "Estimated 3,200 legitimate transactions blocked per month due to false positives",
+      "Customer complaints related to declined transactions up 140% in the same period",
+      "No automated model monitoring or drift alerting was in place",
+      "Retraining the model will take 6 weeks"
+    ],
+    "recommendedAction": "Escalate",
+    "redFlags": ["Model drift", "Customer harm", "No monitoring controls"],
+    "coachingTip": "A 17-point precision drop is a significant model failure that has caused quantifiable customer harm. Escalate to the Model Risk Committee, implement interim manual review for flagged transactions, and address the absence of drift monitoring as a systemic control gap.",
+    "bestProfile": { "risk": 30, "compliance": 85, "growth": 40, "aiTrust": 45, "aiCost": 55 }
+  },
+  {
+    "id": "scn-021",
+    "title": "Rogue Employee Exfiltrating Customer Data",
+    "category": "Cyber & Data",
+    "difficulty": "Hard",
+    "timePressure": "High",
+    "summary": "DLP tools have flagged unusual activity: a relationship manager who resigned last week has downloaded 4,800 customer records to a personal USB drive in their final three days.",
+    "facts": [
+      "4,800 customer records downloaded; employee access revoked on last day",
+      "Employee now works at a direct competitor",
+      "DLP alert was raised 6 days ago but sat unactioned in a queue",
+      "Records include customer names, contact details, AUM, and investment preferences",
+      "GDPR breach notification may be required; legal review ongoing"
+    ],
+    "recommendedAction": "Escalate",
+    "redFlags": ["Data exfiltration", "Competitor risk", "Delayed response to DLP alert"],
+    "coachingTip": "This is simultaneously a GDPR breach, a potential trade secret theft, and a competitor intelligence risk. Escalate to Legal, DPO, and HR immediately. Consider an urgent cease-and-desist and preserve all forensic evidence before the trail goes cold.",
+    "bestProfile": { "risk": 20, "compliance": 92, "growth": 25, "aiTrust": 50, "aiCost": 55 }
   }
 ]
