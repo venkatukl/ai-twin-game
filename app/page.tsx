@@ -195,8 +195,9 @@ export default function HomePage() {
   const [avatarStyle, setAvatarStyle] = useState<AvatarStyleValue>(() => randomAvatarStyle());
   useEffect(() => { if (setupOpen) setAvatarStyle(randomAvatarStyle()); }, [setupOpen]);
 
-  const videoRef  = useRef<HTMLVideoElement | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
+  const videoRef     = useRef<HTMLVideoElement | null>(null);
+  const streamRef    = useRef<MediaStream | null>(null);
+  const guideFrameRef = useRef<HTMLDivElement | null>(null);
 
   const scenario         = scenarios[index % scenarios.length] as Scenario;
   const personaName      = getPersonaName(role, risk, compliance, growth);
@@ -237,8 +238,21 @@ export default function HomePage() {
 
   useEffect(() => {
     setMounted(true);
-    return () => { streamRef.current?.getTracks().forEach((t) => t.stop()); streamRef.current = null; };
+    return () => {
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    };
   }, []);
+
+  // Scroll modal body to top every time setup opens
+  useEffect(() => {
+    if (setupOpen) {
+      requestAnimationFrame(() => {
+        const body = document.querySelector('.setup-modal-body');
+        if (body) body.scrollTop = 0;
+      });
+    }
+  }, [setupOpen]);
 
   // ── Camera ──────────────────────────────────────────────────────────────────
   function stopCamera() {
@@ -273,17 +287,49 @@ export default function HomePage() {
   function capturePhoto() {
     if (!videoRef.current) return;
     const video = videoRef.current;
-    const sourceWidth  = video.videoWidth  || 1024;
-    const sourceHeight = video.videoHeight || 768;
-    const baseSquare   = Math.min(sourceWidth, sourceHeight);
-    const cropSize     = Math.floor(baseSquare * GUIDE_CROP_RATIO);
-    const sx           = Math.floor((sourceWidth  - cropSize) / 2);
-    const sy           = Math.floor((sourceHeight - cropSize) / 2);
+    const videoW = video.videoWidth  || 1024;
+    const videoH = video.videoHeight || 768;
+
+    let sx = 0, sy = 0, cropSize = Math.min(videoW, videoH);
+
+    if (guideFrameRef.current && videoRef.current) {
+      // Measure where the guide frame sits within the video element on screen
+      const videoRect = videoRef.current.getBoundingClientRect();
+      const frameRect = guideFrameRef.current.getBoundingClientRect();
+
+      // How much of the video element is the guide frame (0–1 scale)
+      const scaleX = videoW / videoRect.width;
+      const scaleY = videoH / videoRect.height;
+
+      // Guide frame position relative to the video element, scaled to video pixels
+      const frameLeft   = (frameRect.left   - videoRect.left)   * scaleX;
+      const frameTop    = (frameRect.top    - videoRect.top)    * scaleY;
+      const frameWidth  = frameRect.width  * scaleX;
+      const frameHeight = frameRect.height * scaleY;
+
+      // Use the smaller dimension to keep it square, centred on the frame
+      cropSize = Math.floor(Math.min(frameWidth, frameHeight));
+      sx = Math.floor(frameLeft + (frameWidth  - cropSize) / 2);
+      sy = Math.floor(frameTop  + (frameHeight - cropSize) / 2);
+
+      // Clamp to video bounds
+      sx = Math.max(0, Math.min(sx, videoW - cropSize));
+      sy = Math.max(0, Math.min(sy, videoH - cropSize));
+    } else {
+      // Fallback: centre crop if ref not available
+      const base = Math.min(videoW, videoH);
+      cropSize = Math.floor(base * 0.86);
+      sx = Math.floor((videoW - cropSize) / 2);
+      sy = Math.floor((videoH - cropSize) / 2);
+    }
+
     const canvas = document.createElement('canvas');
     canvas.width = 1024; canvas.height = 1024;
-    const ctx = canvas.getContext('2d'); if (!ctx) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
     ctx.drawImage(video, sx, sy, cropSize, cropSize, 0, 0, 1024, 1024);
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.86);
+
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
     const base64  = dataUrl.replace(/^data:image\/jpeg;base64,/, '');
     setSelectedImageBase64(base64);
     setSelectedMimeType('image/jpeg');
@@ -318,6 +364,7 @@ export default function HomePage() {
   }
 
   function completeSetup() {
+    stopCamera();
     setAvatarSrc(avatarSrc || sourceImageSrc || fallbackAvatarSrc);
     setIsInitialized(true);
     setSetupOpen(false);
@@ -429,7 +476,7 @@ export default function HomePage() {
                     max={max}
                     value={sliderValues[key]}
                     onChange={(e) => sliderSetters[key](Number(e.target.value))}
-                    disabled={!isInitialized || showJudgingPanel}
+                    disabled={!isInitialized}
                     style={{
                       backgroundSize:  `${sliderValues[key]}% 100%`,
                       backgroundImage: 'linear-gradient(90deg, rgba(247,201,72,.5) 0%, rgba(89,179,255,.5) 100%)',
@@ -445,20 +492,22 @@ export default function HomePage() {
           <section className="card center-card">
             <div className="scenario-content">
 
-              {/* Persona-in-role banner */}
-              {isInitialized && (
-                <div className="persona-banner">
-                  You are the <strong>{role}</strong> — how do you respond?
-                </div>
-              )}
+                <div className="scenario-briefing">
+                {/* Persona-in-role banner */}
+                {isInitialized && (
+                  <div className="persona-banner">
+                    You are the <strong>{role}</strong> — how do you respond?
+                  </div>
+                )}
 
-              <div className="scenario-tag">{scenario.category}</div>
-              <div className="scenario-meta">{scenario.difficulty} · {scenario.timePressure} pressure</div>
-              <h1 className="scenario-title">{scenario.title}</h1>
-              <p className="scenario-summary">{scenario.summary}</p>
-              <ul className="bullets">
-                {scenario.facts.map((fact) => <li key={fact}>{fact}</li>)}
-              </ul>
+                <div className="scenario-tag">{scenario.category}</div>
+                <div className="scenario-meta">{scenario.difficulty} · {scenario.timePressure} pressure</div>
+                <h1 className="scenario-title">{scenario.title}</h1>
+                <p className="scenario-summary">{scenario.summary}</p>
+                <ul className="bullets">
+                  {scenario.facts.map((fact) => <li key={fact}>{fact}</li>)}
+                </ul>
+              </div>
 
               <div className="decision-zone">
                 <div className="decision-zone-label">What would you do as the {role}?</div>
@@ -483,10 +532,19 @@ export default function HomePage() {
               <div className="footer-note">{scoreStatus}</div>
               <div className="scenario-actions">
                 <button
+                  className="ghost-btn"
+                  type="button"
+                  onClick={() => setSetupOpen(true)}
+                  title="Edit your AI Twin profile"
+                >
+                  ✎ Edit profile
+                </button>
+                <button
                   className="secondary-btn"
                   type="button"
                   onClick={nextScenario}
-                  disabled={!isInitialized || isScoring}
+                  disabled={!isInitialized || isScoring }
+                  title={showJudgingPanel ? 'Already scored — your round is complete' : undefined}
                 >
                   Try another scenario
                 </button>
@@ -515,7 +573,7 @@ export default function HomePage() {
 
       {/* ── Setup modal ── */}
       {setupOpen && (
-        <div className="setup-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="setup-title">
+        <div className="setup-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="setup-title" onClick={(e) => { if (e.target === e.currentTarget) { stopCamera(); setSetupOpen(false); } }}>
           <div className="setup-modal">
             <div className="setup-modal-header">
               <div className="setup-kicker">Step 1 of 1</div>
@@ -523,90 +581,92 @@ export default function HomePage() {
               <p>Choose your business persona, capture your photo, and generate your avatar before entering the challenge.</p>
             </div>
 
-            <div className="setup-grid">
-              {/* Left */}
-              <div className="setup-form">
-                <div className="field-group">
-                  <label className="label" htmlFor="role-select">Business persona</label>
-                  <select id="role-select" className="select" value={role} onChange={(e) => setRole(e.target.value)}>
-                    <option value="CFO">CFO</option>
-                    <option value="Chief Risk Officer">Chief Risk Officer</option>
-                    <option value="Head of Sales">Head of Sales</option>
-                    <option value="Operations Leader">Operations Leader</option>
-                    <option value="Product Owner">Product Owner</option>
-                  </select>
+            <div className="setup-modal-body">
+              <div className="setup-grid">
+                {/* Left */}
+                <div className="setup-form">
+                  <div className="field-group">
+                    <label className="label" htmlFor="role-select">Business persona</label>
+                    <select id="role-select" className="select" value={role} onChange={(e) => setRole(e.target.value)}>
+                      <option value="CFO">CFO</option>
+                      <option value="Chief Risk Officer">Chief Risk Officer</option>
+                      <option value="Head of Sales">Head of Sales</option>
+                      <option value="Operations Leader">Operations Leader</option>
+                      <option value="Product Owner">Product Owner</option>
+                    </select>
+                  </div>
+                  <div className="field-group">
+                    <label className="label" htmlFor="style-select">Avatar style</label>
+                    <select id="style-select" className="select" value={avatarStyle} onChange={(e) => setAvatarStyle(e.target.value as AvatarStyleValue)}>
+                      {avatarStyleOptions.map((o) => (
+                        <option key={o.value} value={o.value}>{o.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="setup-toolbar">
+                    <button className="icon-btn" type="button" onClick={cameraOpen ? stopCamera : startCamera} aria-label="Toggle camera">
+                      {cameraOpen ? <CameraOff size={15} /> : <Camera size={15} />}
+                    </button>
+                    <button className="secondary-btn compact-btn" type="button" onClick={capturePhoto} disabled={!videoReady}>
+                      {cameraOpen && !videoReady ? 'Starting…' : 'Capture photo'}
+                    </button>
+                    <button className="primary-btn compact-btn" type="button" onClick={generateAvatar} disabled={!selectedImageBase64 || isGeneratingAvatar}>
+                      {isGeneratingAvatar ? 'Generating…' : 'Generate avatar'}
+                    </button>
+                  </div>
                 </div>
-                <div className="field-group">
-                  <label className="label" htmlFor="style-select">Avatar style</label>
-                  <select id="style-select" className="select" value={avatarStyle} onChange={(e) => setAvatarStyle(e.target.value as AvatarStyleValue)}>
-                    {avatarStyleOptions.map((o) => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="setup-toolbar">
-                  <button className="icon-btn" type="button" onClick={cameraOpen ? stopCamera : startCamera} aria-label="Toggle camera">
-                    {cameraOpen ? <CameraOff size={15} /> : <Camera size={15} />}
-                  </button>
-                  <button className="secondary-btn compact-btn" type="button" onClick={capturePhoto} disabled={!videoReady}>
-                    {cameraOpen && !videoReady ? 'Starting…' : 'Capture photo'}
-                  </button>
-                  <button className="primary-btn compact-btn" type="button" onClick={generateAvatar} disabled={!selectedImageBase64 || isGeneratingAvatar}>
-                    {isGeneratingAvatar ? 'Generating…' : 'Generate avatar'}
-                  </button>
-                </div>
-              </div>
 
-              {/* Right — preview */}
-              <div className="setup-preview">
-                <div className="setup-preview-card">
-                  <div className="setup-preview-header">
-                    <span>Preview</span>
-                    <span style={{ color: 'var(--muted)', fontWeight: 600 }}>{personaName}</span>
-                  </div>
-                  <div className="setup-preview-media">
-                    {cameraOpen ? (
-                      <div className="camera-stage">
-                        <video
-                          ref={videoRef}
-                          autoPlay playsInline muted
-                          onCanPlay={() => setVideoReady(true)}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                        />
-                        <div className="camera-guide">
-                          <div className="camera-guide-frame" />
-                          <div className="camera-guide-text">Center your face in the frame</div>
+                {/* Right — preview */}
+                <div className="setup-preview">
+                  <div className="setup-preview-card">
+                    <div className="setup-preview-header">
+                      <span>Preview</span>
+                      <span style={{ color: 'var(--muted)', fontWeight: 600 }}>{personaName}</span>
+                    </div>
+                    <div className="setup-preview-media">
+                      {cameraOpen ? (
+                        <div className="camera-stage">
+                          <video
+                            ref={videoRef}
+                            autoPlay playsInline muted
+                            onCanPlay={() => setVideoReady(true)}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                          />
+                          <div className="camera-guide">
+                            <div className="camera-guide-frame" ref={guideFrameRef} />
+                            <div className="camera-guide-text">Center your face in the frame</div>
+                          </div>
+                          <button className="camera-close-btn" type="button" onClick={stopCamera} aria-label="Close camera">
+                            <CameraOff size={15} />
+                          </button>
                         </div>
-                        <button className="camera-close-btn" type="button" onClick={stopCamera} aria-label="Close camera">
-                          <CameraOff size={15} />
-                        </button>
-                      </div>
-                    ) : avatarSrc ? (
-                      <img className="setup-preview-image" src={avatarSrc} alt="Generated avatar" />
-                    ) : sourceImageSrc ? (
-                      <img className="setup-preview-image" src={sourceImageSrc} alt="Captured photo" />
-                    ) : (
-                      <div className="setup-empty">
-                        <Camera size={28} />
-                        <div>No photo yet</div>
-                        <div className="small">Open camera → capture → generate avatar</div>
-                      </div>
-                    )}
-                    {isGeneratingAvatar && (
-                      <div className="avatar-generating-overlay">
-                        <div className="twin-spinner">
-                          <div className="twin-ring ring-a" />
-                          <div className="twin-ring ring-b" />
-                          <Sparkles size={16} />
+                      ) : avatarSrc ? (
+                        <img className="setup-preview-image" src={avatarSrc} alt="Generated avatar" />
+                      ) : sourceImageSrc ? (
+                        <img className="setup-preview-image" src={sourceImageSrc} alt="Captured photo" />
+                      ) : (
+                        <div className="setup-empty">
+                          <Camera size={28} />
+                          <div>No photo yet</div>
+                          <div className="small">Open camera → capture → generate avatar</div>
                         </div>
-                        <div className="avatar-generating-title">Building your AI Twin…</div>
-                        <div className="small">Applying style and rendering avatar.</div>
-                      </div>
-                    )}
-                  </div>
-                  <div className="setup-preview-meta">
-                    <div className="active-avatar-name">{personaName}</div>
-                    <div className="small">{role} · {selectedStyleLabel}</div>
+                      )}
+                      {isGeneratingAvatar && (
+                        <div className="avatar-generating-overlay">
+                          <div className="twin-spinner">
+                            <div className="twin-ring ring-a" />
+                            <div className="twin-ring ring-b" />
+                            <Sparkles size={16} />
+                          </div>
+                          <div className="avatar-generating-title">Building your AI Twin…</div>
+                          <div className="small">Applying style and rendering avatar.</div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="setup-preview-meta">
+                      <div className="active-avatar-name">{personaName}</div>
+                      <div className="small">{role} · {selectedStyleLabel}</div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -614,7 +674,7 @@ export default function HomePage() {
 
             <div className="setup-modal-footer">
               {isInitialized && (
-                <button className="secondary-btn" type="button" onClick={() => setSetupOpen(false)}>Cancel</button>
+                <button className="secondary-btn" type="button" onClick={() => { stopCamera(); setSetupOpen(false); }}>Cancel</button>
               )}
               <button className="primary-btn" type="button" onClick={completeSetup}>
                 {isInitialized ? 'Save & resume' : 'Enter the challenge →'}
@@ -750,6 +810,13 @@ export default function HomePage() {
 
             {/* Footer */}
             <div className="results-modal-footer">
+               <button
+                className="ghost-btn"
+                type="button"
+                onClick={() => { setShowResultsDialog(false); setSetupOpen(true); }}
+              >
+                ✎ Edit profile
+              </button>
               <button className="secondary-btn" type="button" onClick={() => setShowResultsDialog(false)}>
                 Back to scenario
               </button>

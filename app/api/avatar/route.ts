@@ -195,6 +195,60 @@ async function downloadAsBase64(imageUrl: string): Promise<{ base64: string; mim
   }
 }
 
+// ── Step 1: Remove background before avatar generation ────────────────────────
+// Strips everything except the person, giving Flux Dev a clean face to work with.
+// Uses fal-ai/imageutils/rembg — fast, accurate, free-tier friendly.
+async function removeBackground(
+  imageBase64: string,
+  mimeType: string,
+  falKey: string,
+): Promise<string | null> {
+  try {
+    const dataUri = `data:${mimeType};base64,${imageBase64}`;
+
+    const response = await fetch('https://fal.run/fal-ai/imageutils/rembg', {
+      method: 'POST',
+      headers: {
+        Authorization: `Key ${falKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        image_url: dataUri,
+        sync_mode: true,
+      }),
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      console.warn('rembg failed with status:', response.status, '— skipping background removal');
+      return null;
+    }
+
+    const data = await response.json();
+    // rembg returns image with transparent background as PNG
+    const cleanUrl = data?.image?.url || data?.images?.[0]?.url || null;
+
+    if (!cleanUrl) {
+      console.warn('rembg returned no image URL — skipping background removal');
+      return null;
+    }
+
+    // Download the cleaned image and return as base64 PNG
+    const downloaded = await downloadAsBase64(cleanUrl);
+    if (!downloaded) {
+      console.warn('rembg image download failed — skipping background removal');
+      return null;
+    }
+
+    console.log('rembg: background removed successfully');
+    return downloaded.base64;
+
+  } catch (err) {
+    console.warn('rembg error — skipping background removal:', err);
+    return null;
+  }
+}
+
 // ── Route handler ─────────────────────────────────────────────────────────────
 export async function POST(request: Request) {
   try {
@@ -224,10 +278,21 @@ export async function POST(request: Request) {
     }
 
     const normalizedMime = mimeType.startsWith('image/') ? mimeType : 'image/jpeg';
-    const dataUri = `data:${normalizedMime};base64,${imageBase64}`;
     const prompt = buildPrompt(persona, avatarStyleKey);
 
-    console.log('fal.ai: submitting job, style=', avatarStyleKey);
+    // Step 1: Remove background — gives Flux a clean face to transform
+    // If rembg fails for any reason, fall back to the original image
+    console.log('rembg: removing background...');
+    const cleanedBase64 = await removeBackground(imageBase64, normalizedMime, process.env.FAL_KEY);
+    const sourceBase64 = cleanedBase64 ?? imageBase64;
+    const sourceMime = cleanedBase64 ? 'image/png' : normalizedMime;
+    const dataUri = `data:${sourceMime};base64,${sourceBase64}`;
+
+    console.log(
+      cleanedBase64
+        ? 'fal.ai: submitting with background-removed image, style=' + avatarStyleKey
+        : 'fal.ai: submitting with original image (rembg skipped), style=' + avatarStyleKey
+    );
 
     const falResponse = await fetch(FAL_ENDPOINT, {
       method: 'POST',
