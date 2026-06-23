@@ -90,11 +90,19 @@ export default function HomePage() {
   const [selectedImageBase64, setSelectedImageBase64] = useState<string | null>(null);
   const [selectedMimeType, setSelectedMimeType] = useState('image/jpeg');
   const [cameraOpen, setCameraOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const [avatarStyle, setAvatarStyle] = useState<AvatarStyleValue>('pixar-3d-masterpiece');
+  const [mounted, setMounted] = useState(false);  
   const [scoreStatus, setScoreStatus] = useState('Complete AI Twin setup to begin.');
   const [setupOpen, setSetupOpen] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
+
+  const randomAvatarStyle = () =>
+  avatarStyleOptions[Math.floor(Math.random() * avatarStyleOptions.length)].value;
+
+  const [avatarStyle, setAvatarStyle] = useState<AvatarStyleValue>(() => randomAvatarStyle());
+
+  useEffect(() => {
+    if (setupOpen) setAvatarStyle(randomAvatarStyle());
+  }, [setupOpen]);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
