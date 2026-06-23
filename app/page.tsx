@@ -90,6 +90,7 @@ export default function HomePage() {
   const [selectedImageBase64, setSelectedImageBase64] = useState<string | null>(null);
   const [selectedMimeType, setSelectedMimeType] = useState('image/jpeg');
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [videoReady, setVideoReady] = useState(false);
   const [mounted, setMounted] = useState(false);  
   const [scoreStatus, setScoreStatus] = useState('Complete AI Twin setup to begin.');
   const [setupOpen, setSetupOpen] = useState(true);
@@ -146,15 +147,31 @@ export default function HomePage() {
     streamRef.current = null;
     if (videoRef.current) { videoRef.current.pause(); videoRef.current.srcObject = null; }
     setCameraOpen(false);
+    setVideoReady(false);
   }
 
   async function startCamera() {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1024 }, height: { ideal: 1024 } }, audio: false });
+      // Lower resolution constraints are more reliable on mobile browsers
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 720 } },
+        audio: false,
+      });
       streamRef.current = stream;
+      setVideoReady(false);
       setCameraOpen(true);
-      requestAnimationFrame(async () => { if (videoRef.current) { videoRef.current.srcObject = stream; await videoRef.current.play(); } });
-    } catch (error) { console.error('Camera access failed:', error); }
+      // Attach stream after state update — use a short timeout instead of
+      // requestAnimationFrame which breaks the user-gesture chain on mobile Safari
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play().catch((e) => console.warn('Video play failed:', e));
+        }
+      }, 80);
+    } catch (error) {
+      console.error('Camera access failed:', error);
+      alert('Camera access was denied or unavailable. Please check your browser permissions and ensure the page is served over HTTPS.');
+    }
   }
 
   function capturePhoto() {
@@ -426,8 +443,8 @@ export default function HomePage() {
                   <button className="icon-btn" type="button" onClick={cameraOpen ? stopCamera : startCamera} aria-label="Toggle camera">
                     {cameraOpen ? <CameraOff size={15} /> : <Camera size={15} />}
                   </button>
-                  <button className="secondary-btn compact-btn" type="button" onClick={capturePhoto} disabled={!cameraOpen}>
-                    Capture photo
+                  <button className="secondary-btn compact-btn" type="button" onClick={capturePhoto} disabled={!videoReady}>
+                    {cameraOpen && !videoReady ? 'Starting…' : 'Capture photo'}
                   </button>
                   <button className="primary-btn compact-btn" type="button" onClick={generateAvatar} disabled={!selectedImageBase64 || isGeneratingAvatar}>
                     {isGeneratingAvatar ? 'Generating…' : 'Generate avatar'}
@@ -446,7 +463,7 @@ export default function HomePage() {
                   <div className="setup-preview-media">
                     {cameraOpen ? (
                       <div className="camera-stage">
-                        <video ref={videoRef} autoPlay playsInline muted style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center center', display: 'block' }} />
+                        <video ref={videoRef} autoPlay playsInline muted onCanPlay={() => setVideoReady(true)} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center center', display: 'block' }} />
                         <div className="camera-guide">
                           <div className="camera-guide-frame" />
                           <div className="camera-guide-text">Center your face in the frame</div>
