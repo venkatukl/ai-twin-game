@@ -117,11 +117,11 @@ function scoreScenario(
 }
 
 function getPersonaName(role: string, risk: number, compliance: number, growth: number) {
-  if (compliance >= 85) return 'Captain Compliance';
-  if (growth >= 85)     return 'Growth Gladiator';
-  if (risk <= 25)       return 'Caution Commander';
-  if (risk >= 75 && growth >= 70) return 'Bold Pathfinder';
-  if (role.includes('Risk')) return 'Guardian Grid';
+  if (role === 'CFO')                    return compliance >= 85 ? 'Captain Compliance' : risk >= 70 ? 'Bold CFO' : 'Strategy Spark';
+  if (role === 'Chief Risk Officer')     return risk <= 30 ? 'Guardian Grid' : compliance >= 80 ? 'Risk Sentinel' : 'Caution Commander';
+  if (role === 'Head of Sales')          return growth >= 75 ? 'Growth Gladiator' : 'Deal Driver';
+  if (role === 'Operations Leader')      return compliance >= 80 ? 'Process Pro' : 'Efficiency Edge';
+  if (role === 'Product Owner')          return growth >= 75 ? 'Bold Pathfinder' : 'Vision Architect';
   return 'Strategy Spark';
 }
 
