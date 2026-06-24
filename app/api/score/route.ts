@@ -1,18 +1,43 @@
 import scenarios from '@/data/scenarios.json';
 
-// Groq is OpenAI-API-compatible — no special SDK needed
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL   = 'llama-3.3-70b-versatile';
 
-// Directional label helpers
-function delta(user: number, ideal: number): string {
-  const diff = user - ideal;
-  if (Math.abs(diff) <= 8) return 'spot on';
-  return diff > 0 ? 'too high' : 'too low';
+// ── Scoring helpers ───────────────────────────────────────────────────────────
+// Softer penalty curve: ±15 still scores 80+, only large deviations hurt badly
+function dimensionScore(diff: number): number {
+  return Math.max(25, Math.min(100, Math.round(100 - Math.abs(diff) * 0.65)));
 }
 
-function dimensionScore(diff: number, factor: number): number {
-  return Math.max(20, Math.min(100, Math.round(100 - Math.abs(diff) * factor)));
+// Action is the primary judgment — worth 50% of total score
+function actionScore(action: string, recommended: string): number {
+  const a = action.toLowerCase();
+  const r = recommended.toLowerCase();
+  if (a === r) return 50;
+  // Partial: one contains the other (e.g. "approve" vs "approve with conditions")
+  if (a.includes(r) || r.includes(a)) return 35;
+  // Adjacent actions (escalate/hold are adjacent; approve/reject are opposites)
+  const adjacentPairs = [['escalate', 'hold'], ['approve', 'approve with conditions']];
+  if (adjacentPairs.some(([x, y]) => (a.includes(x) && r.includes(y)) || (a.includes(y) && r.includes(x)))) return 20;
+  return 0;
+}
+
+// Returns only gaps that are meaningfully off (> 12 points), max 3, sorted by magnitude
+function topGaps(
+  profile: { risk: number; compliance: number; growth: number; aiTrust: number; aiCost: number },
+  bp: { risk: number; compliance: number; growth: number; aiTrust: number; aiCost?: number },
+  idealAiCost: number,
+) {
+  const all = [
+    { label: 'Risk appetite',      user: profile.risk,       ideal: bp.risk,       diff: profile.risk       - bp.risk },
+    { label: 'Compliance focus',   user: profile.compliance, ideal: bp.compliance, diff: profile.compliance - bp.compliance },
+    { label: 'Growth drive',       user: profile.growth,     ideal: bp.growth,     diff: profile.growth     - bp.growth },
+    { label: 'AI trust',           user: profile.aiTrust,    ideal: bp.aiTrust,    diff: profile.aiTrust    - bp.aiTrust },
+    { label: 'AI cost discipline', user: profile.aiCost,     ideal: idealAiCost,   diff: profile.aiCost     - idealAiCost },
+  ];
+  return all
+    .sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff))
+    .map((g) => ({ ...g, direction: g.diff > 0 ? 'too high' : g.diff < 0 ? 'too low' : 'spot on' }));
 }
 
 export async function POST(req: Request) {
@@ -24,140 +49,103 @@ export async function POST(req: Request) {
   };
 
   const scenario = scenarios.find((s) => s.id === scenarioId);
-  if (!scenario) {
-    return Response.json({ error: 'Invalid scenario id' }, { status: 404 });
-  }
+  if (!scenario) return Response.json({ error: 'Invalid scenario id' }, { status: 404 });
 
   const bp = scenario.bestProfile as {
     risk: number; compliance: number; growth: number; aiTrust: number; aiCost?: number;
   };
   const idealAiCost = bp.aiCost ?? 55;
 
-  // ── Local fallback scores (used when no API key or on API error) ──────────
-  const localDimensions = {
-    riskCalibration:     dimensionScore(profile.risk        - bp.risk,        1.3),
-    complianceAlignment: dimensionScore(profile.compliance  - bp.compliance,   1.25),
-    growthJudgment:      dimensionScore(profile.growth      - bp.growth,       1.2),
-    aiGovernance:        dimensionScore(profile.aiTrust     - bp.aiTrust,      1.25),
-    aiCostDiscipline:    dimensionScore(profile.aiCost      - idealAiCost,     1.2),
+  // ── Local fallback scoring ────────────────────────────────────────────────
+  // Action = 50 pts, slider alignment = 50 pts (avg of 5 dims)
+  const aScore = actionScore(action, scenario.recommendedAction);
+  const dimScores = {
+    riskCalibration:     dimensionScore(profile.risk       - bp.risk),
+    complianceAlignment: dimensionScore(profile.compliance - bp.compliance),
+    growthJudgment:      dimensionScore(profile.growth     - bp.growth),
+    aiGovernance:        dimensionScore(profile.aiTrust    - bp.aiTrust),
+    aiCostDiscipline:    dimensionScore(profile.aiCost     - idealAiCost),
   };
-  const actionMatch = action.toLowerCase() === scenario.recommendedAction.toLowerCase();
-  const actionBonus = actionMatch ? 12 : scenario.recommendedAction.toLowerCase().includes(action.toLowerCase()) ? 6 : 0;
-  const dimAvg = Math.round(Object.values(localDimensions).reduce((a, b) => a + b, 0) / 5);
-  const localScore = Math.max(18, Math.min(100, dimAvg + actionBonus));
+  const sliderAvg = Math.round(Object.values(dimScores).reduce((a, b) => a + b, 0) / 5);
+  // Action worth 50%, sliders worth 50% — but sliders are secondary context
+  const localScore = Math.max(20, Math.min(100, Math.round(aScore + sliderAvg * 0.5)));
 
-  // Profile deltas for UI display (always computed locally, no AI needed)
-  const profileDeltas = [
-    { label: 'Risk appetite',      user: profile.risk,       ideal: bp.risk,        direction: delta(profile.risk, bp.risk) },
-    { label: 'Compliance focus',   user: profile.compliance, ideal: bp.compliance,  direction: delta(profile.compliance, bp.compliance) },
-    { label: 'Growth drive',       user: profile.growth,     ideal: bp.growth,      direction: delta(profile.growth, bp.growth) },
-    { label: 'AI trust',           user: profile.aiTrust,    ideal: bp.aiTrust,     direction: delta(profile.aiTrust, bp.aiTrust) },
-    { label: 'AI cost discipline', user: profile.aiCost,     ideal: idealAiCost,    direction: delta(profile.aiCost, idealAiCost) },
-  ];
+  const verdict = (s: number) =>
+    s >= 82 ? 'Strong balance' : s >= 62 ? 'Promising but exposed' : 'Needs tighter controls';
 
-  // ── No API key → return clean local fallback immediately ─────────────────
+  const gaps = topGaps(profile, bp, idealAiCost);
+
+  const localFallback = {
+    score: localScore,
+    verdict: verdict(localScore),
+    coachNarrative: `You chose to ${action}; the recommended call was ${scenario.recommendedAction}. ${scenario.coachingTip}`,
+    gaps,
+    idealAction: scenario.recommendedAction,
+  };
+
   if (!process.env.GROQ_API_KEY) {
-    return Response.json({
-      mode: 'local-fallback',
-      score: localScore,
-      verdict: localScore >= 80 ? 'Strong balance' : localScore >= 60 ? 'Promising but exposed' : 'Needs tighter controls',
-      dimensions: localDimensions,
-      rationale: 'Add GROQ_API_KEY to your Vercel environment variables to enable live AI judging.',
-      idealAction: scenario.recommendedAction,
-      personaComparison: `A typical ${profile.role} facing "${scenario.title}" would have chosen to ${scenario.recommendedAction}. ${scenario.coachingTip}`,
-      profileDeltas,
-    });
+    return Response.json({ mode: 'local-fallback', ...localFallback });
   }
 
   // ── Groq prompt ───────────────────────────────────────────────────────────
-  const prompt = `You are an expert business decision coach judging a hackathon challenge.
+  const gapSummary = gaps.length
+    ? gaps.map((g) => `${g.label}: yours ${g.user}, ideal ${g.ideal} (${g.direction})`).join('; ')
+    : 'all sliders were close to ideal';
 
-A participant is playing the role of a ${profile.role}. They were given the following scenario and asked to respond as that persona would.
+  const prompt = `You are a sharp, direct business decision coach judging a hackathon challenge. Be concise — no filler, no bullet points.
 
-SCENARIO
-Title: ${scenario.title}
-Category: ${scenario.category} | Difficulty: ${scenario.difficulty} | Time pressure: ${scenario.timePressure}
+SCENARIO: ${scenario.title}
 Summary: ${scenario.summary}
-Key facts: ${scenario.facts.map((f, i) => `${i + 1}. ${f}`).join(' ')}
+Recommended action: ${scenario.recommendedAction}
 
-PARTICIPANT'S RESPONSE
+PARTICIPANT (role: ${profile.role})
 Chosen action: ${action}
-Their profile sliders (0–100 scale):
-  - Risk appetite: ${profile.risk}
-  - Compliance focus: ${profile.compliance}
-  - Growth drive: ${profile.growth}
-  - AI trust: ${profile.aiTrust}
-  - AI cost discipline: ${profile.aiCost}
+Notable slider gaps vs ideal: ${gapSummary}
 
-IDEAL BENCHMARK for this scenario (what a well-calibrated ${profile.role} should have)
-  - Recommended action: ${scenario.recommendedAction}
-  - Ideal risk appetite: ${bp.risk}
-  - Ideal compliance focus: ${bp.compliance}
-  - Ideal growth drive: ${bp.growth}
-  - Ideal AI trust: ${bp.aiTrust}
-  - Ideal AI cost discipline: ${idealAiCost}
+SCORING RULES — follow these exactly:
+- Action choice is the PRIMARY judgment and worth ~50 of the 100 points.
+  - Exact match = 50 pts, partial/adjacent = 20-35 pts, wrong = 0 pts
+- Slider alignment is secondary context, worth the remaining ~50 pts spread across 5 dimensions.
+  - Small gaps (≤15 pts off) should still score 75-85 on that dimension.
+- A correct action with minor slider gaps should score 72-88 overall.
+- Only score below 55 if both the action AND sliders are significantly wrong.
 
-Your job: score this participant and write a short, direct coaching narrative comparing what they did to what a typical, well-calibrated ${profile.role} would do.
-
-Return ONLY valid JSON with these exact keys:
+Return ONLY valid JSON — no markdown, no extra keys:
 {
-  "score": <integer 0-100>,
-  "verdict": <one of: "Strong balance" | "Promising but exposed" | "Needs tighter controls">,
-  "dimensions": {
-    "riskCalibration": <integer 0-100>,
-    "complianceAlignment": <integer 0-100>,
-    "growthJudgment": <integer 0-100>,
-    "aiGovernance": <integer 0-100>,
-    "aiCostDiscipline": <integer 0-100>
-  },
-  "rationale": "<2-3 sentence overall verdict. Be specific about the score and what drove it.>",
-  "personaComparison": "<3-4 sentences written directly to the participant. Start with what a typical ${profile.role} would have done differently. Then explain the key gap between their choices and the ideal. End with one concrete takeaway they can remember. Be direct, not preachy. Do not use bullet points.>"
+  "score": <integer 0-100, following the rules above>,
+  "verdict": <exactly one of: "Strong balance" | "Promising but exposed" | "Needs tighter controls">,
+  "coachNarrative": "<4-5 sentences, direct second-person voice. 1) Was the action right or wrong and why. 2) What a well-calibrated ${profile.role} would have done. 3) The one most important slider gap and its real-world implication. 4) One concrete takeaway. No bullet points, no preamble.>"
 }`;
 
   try {
     const res = await fetch(GROQ_API_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
-      },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.GROQ_API_KEY}` },
       body: JSON.stringify({
         model: GROQ_MODEL,
         messages: [{ role: 'user', content: prompt }],
-        temperature: 0.4,
-        max_tokens: 600,
+        temperature: 0.35,
+        max_tokens: 400,
         response_format: { type: 'json_object' },
       }),
     });
 
-    if (!res.ok) {
-      const err = await res.text();
-      console.error('Groq API error:', err);
-      throw new Error('Groq API returned non-200');
-    }
+    if (!res.ok) throw new Error(`Groq ${res.status}`);
 
     const groqData = await res.json();
     const raw = groqData.choices?.[0]?.message?.content ?? '{}';
     const parsed = JSON.parse(raw);
 
     return Response.json({
-      ...parsed,
-      idealAction: scenario.recommendedAction,
-      profileDeltas,
+      score:           parsed.score           ?? localScore,
+      verdict:         parsed.verdict         ?? verdict(localScore),
+      coachNarrative:  parsed.coachNarrative  ?? localFallback.coachNarrative,
+      gaps,
+      idealAction:     scenario.recommendedAction,
     });
 
   } catch (err) {
     console.error('Scoring error, using local fallback:', err);
-    // Return local scores so the UI always gets something useful
-    return Response.json({
-      mode: 'local-fallback',
-      score: localScore,
-      verdict: localScore >= 80 ? 'Strong balance' : localScore >= 60 ? 'Promising but exposed' : 'Needs tighter controls',
-      dimensions: localDimensions,
-      rationale: 'AI scoring encountered an error. Showing estimated score based on your profile.',
-      idealAction: scenario.recommendedAction,
-      personaComparison: `A typical ${profile.role} facing "${scenario.title}" would have chosen to ${scenario.recommendedAction}. ${scenario.coachingTip}`,
-      profileDeltas,
-    });
+    return Response.json({ mode: 'local-fallback', ...localFallback });
   }
 }

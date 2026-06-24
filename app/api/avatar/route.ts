@@ -53,21 +53,13 @@ const STYLE_COLOUR_HINTS: Record<AvatarStyleKey, string> = {
 function buildPrompt(persona: string, styleKey: AvatarStyleKey): string {
   const colourHint = STYLE_COLOUR_HINTS[styleKey] ?? STYLE_COLOUR_HINTS['pixar-3d-masterpiece'];
   return [
-    'Transform this photo into a premium Pixar-style 3D animated avatar portrait.',
-    'The result must look like a high-quality Pixar or Disney character render:',
-    'smooth rounded facial geometry, clean simplified skin with subtle warm shading,',
-    'slightly enlarged friendly eyes, polished 3D hair with clear strand groupings,',
-    'soft cinematic rim lighting, gentle ambient occlusion, and a studio-quality finish.',
-    `Character: ${colourHint}.`,
-    `Professional context: ${persona}.`,
-    'Head-and-shoulders composition, centered, slight upward camera angle.',
-    "Faithfully preserve the person's facial identity: face shape, skin tone, hair colour,",
-    'hair style direction, eye colour, and distinguishing features like glasses or beard.',
-    'The style should transform photographic realism into 3D cartoon — not replace the identity.',
-    'Background must be clean, simple, and non-distracting.',
-    'Output: single character, no extra people, no extra limbs, no text, no logos,',
-    'no watermarks, no distorted eyes, no asymmetric faces.',
-    'Quality: ultra-sharp, gallery-ready, professionally polished.',
+    'Stylized Pixar 3D caricature avatar. NOT photorealistic.',
+    'Exaggerated proportions: oversized head, large expressive eyes, amplified jaw and cheekbones.',
+    'Glossy toy-like 3D plastic materials, subsurface skin shading, smooth cartoon geometry, warm studio lighting.',
+    'Preserve: skin tone, hair colour and style, eye colour, glasses, beard.',
+    `Style: ${colourHint}.`,
+    `Role: ${persona}.`,
+    'Head-and-shoulders, centered. Single character, no text, no logos.',
   ].join(' ');
 }
 
@@ -77,9 +69,10 @@ const MAX_POLL_ATTEMPTS = 20;
 const POLL_INTERVAL_MS = 1500;
 
 const FAL_CONFIG = {
-  strength: 0.88,        // High enough for full art-style transformation
-  guidance_scale: 12,    // Stronger prompt adherence — forces the Pixar aesthetic
+  strength: 0.92,        // High enough for full art-style transformation
+  guidance_scale: 14,    // Stronger prompt adherence — forces the Pixar aesthetic
   num_images: 1,
+  num_inference_steps: 35,
   image_size: { width: 1024, height: 1024 },
   sync_mode: false,
   enable_safety_checker: true,

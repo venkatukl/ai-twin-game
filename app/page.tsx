@@ -11,27 +11,17 @@ type ProfileDelta = { label: string; user: number; ideal: number; direction: str
 type ScoreResponse = {
   score?: number;
   verdict?: string;
-  dimensions?: {
-    riskCalibration?: number;
-    complianceAlignment?: number;
-    growthJudgment?: number;
-    aiGovernance?: number;
-    aiCostDiscipline?: number;
-  };
-  rationale?: string;
-  personaComparison?: string;
+  coachNarrative?: string;
+  gaps?: { label: string; user: number; ideal: number; direction: string }[];
   idealAction?: string;
-  profileDeltas?: ProfileDelta[];
 };
 
 type ActiveScore = {
   overall: number;
   verdict: string;
-  note: string;
-  personaComparison: string;
+  coachNarrative: string;
   idealAction: string;
-  profileDeltas: ProfileDelta[];
-  dimensions: { label: string; value: number }[];
+  gaps: { label: string; user: number; ideal: number; direction: string }[];
 };
 
 type TwinProfile = {
@@ -72,6 +62,24 @@ const sliderConfig = [
   { key: 'aiCost'     as const, label: 'AI cost discipline', min: 0, max: 100 },
 ];
 
+function topGaps(
+  profile: TwinProfile,
+  bp: { risk: number; compliance: number; growth: number; aiTrust: number; aiCost?: number },
+  idealAiCost: number,
+) {
+  return [
+    { label: 'Risk appetite',      user: profile.risk,       ideal: bp.risk,       diff: profile.risk       - bp.risk },
+    { label: 'Compliance focus',   user: profile.compliance, ideal: bp.compliance, diff: profile.compliance - bp.compliance },
+    { label: 'Growth drive',       user: profile.growth,     ideal: bp.growth,     diff: profile.growth     - bp.growth },
+    { label: 'AI trust',           user: profile.aiTrust,    ideal: bp.aiTrust,    diff: profile.aiTrust    - bp.aiTrust },
+    { label: 'AI cost discipline', user: profile.aiCost,     ideal: idealAiCost,   diff: profile.aiCost     - idealAiCost },
+  ]
+    .filter((g) => Math.abs(g.diff) > 12)
+    .sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff))
+    .slice(0, 3)
+    .map((g) => ({ ...g, direction: g.diff > 0 ? 'too high' : 'too low' }));
+}
+
 // ── Local scoring fallback (no API) ──────────────────────────────────────────
 function scoreScenario(
   profile: TwinProfile,
@@ -83,36 +91,28 @@ function scoreScenario(
   };
   const idealAiCost = bp.aiCost ?? 55;
 
-  const dims = [
-    { label: 'Risk calibration',     value: Math.max(20, Math.min(100, Math.round(100 - Math.abs(profile.risk       - bp.risk)        * 1.3))) },
-    { label: 'Compliance alignment', value: Math.max(20, Math.min(100, Math.round(100 - Math.abs(profile.compliance - bp.compliance)   * 1.25))) },
-    { label: 'Growth judgment',      value: Math.max(20, Math.min(100, Math.round(100 - Math.abs(profile.growth     - bp.growth)       * 1.2))) },
-    { label: 'AI governance',        value: Math.max(20, Math.min(100, Math.round(100 - Math.abs(profile.aiTrust    - bp.aiTrust)      * 1.25))) },
-    { label: 'AI cost discipline',   value: Math.max(20, Math.min(100, Math.round(100 - Math.abs(profile.aiCost     - idealAiCost)     * 1.2))) },
+  const aScore = (() => {
+    const a = action.toLowerCase(), r = scenario.recommendedAction.toLowerCase();
+    if (a === r) return 50;
+    if (a.includes(r) || r.includes(a)) return 35;
+    return 0;
+  })();
+  const dimScores = [
+    Math.max(25, Math.min(100, Math.round(100 - Math.abs(profile.risk       - bp.risk)        * 0.65))),
+    Math.max(25, Math.min(100, Math.round(100 - Math.abs(profile.compliance - bp.compliance)  * 0.65))),
+    Math.max(25, Math.min(100, Math.round(100 - Math.abs(profile.growth     - bp.growth)      * 0.65))),
+    Math.max(25, Math.min(100, Math.round(100 - Math.abs(profile.aiTrust    - bp.aiTrust)     * 0.65))),
+    Math.max(25, Math.min(100, Math.round(100 - Math.abs(profile.aiCost     - idealAiCost)    * 0.65))),
   ];
-
-  const actionMatch = action.toLowerCase() === scenario.recommendedAction.toLowerCase();
-  const actionBonus = actionMatch ? 12 : scenario.recommendedAction.toLowerCase().includes(action.toLowerCase()) ? 6 : 0;
-  const overall = Math.max(18, Math.min(100, Math.round(dims.reduce((a, d) => a + d.value, 0) / 5 + actionBonus)));
-
-  function dir(u: number, i: number) {
-    const d = u - i; return Math.abs(d) <= 8 ? 'spot on' : d > 0 ? 'too high' : 'too low';
-  }
+  const sliderAvg = Math.round(dimScores.reduce((a, b) => a + b, 0) / 5);
+  const overall   = Math.max(20, Math.min(100, Math.round(aScore + sliderAvg * 0.5)));
 
   return {
     overall,
-    verdict: overall >= 80 ? 'Strong balance' : overall >= 60 ? 'Promising but exposed' : 'Needs tighter controls',
-    note: scenario.coachingTip,
-    personaComparison: `A typical ${profile.role} facing this scenario would have chosen to ${scenario.recommendedAction}. ${scenario.coachingTip}`,
+    verdict: overall >= 82 ? 'Strong balance' : overall >= 62 ? 'Promising but exposed' : 'Needs tighter controls',
+    coachNarrative: `You chose to ${action}; the recommended call was ${scenario.recommendedAction}. ${scenario.coachingTip}`,
     idealAction: scenario.recommendedAction,
-    dimensions: dims,
-    profileDeltas: [
-      { label: 'Risk appetite',      user: profile.risk,       ideal: bp.risk,       direction: dir(profile.risk, bp.risk) },
-      { label: 'Compliance focus',   user: profile.compliance, ideal: bp.compliance, direction: dir(profile.compliance, bp.compliance) },
-      { label: 'Growth drive',       user: profile.growth,     ideal: bp.growth,     direction: dir(profile.growth, bp.growth) },
-      { label: 'AI trust',           user: profile.aiTrust,    ideal: bp.aiTrust,    direction: dir(profile.aiTrust, bp.aiTrust) },
-      { label: 'AI cost discipline', user: profile.aiCost,     ideal: idealAiCost,   direction: dir(profile.aiCost, idealAiCost) },
-    ],
+    gaps: topGaps(profile, bp, idealAiCost),
   };
 }
 
@@ -159,6 +159,8 @@ export default function HomePage() {
   const [aiTrust,    setAiTrust]    = useState(55);
   const [aiCost,     setAiCost]     = useState(40);
 
+  const [showLanding, setShowLanding] = useState(true);
+
   const [index,  setIndex]  = useState(() => Math.floor(Math.random() * scenarios.length));
   const [action, setAction] = useState('Approve with conditions');
 
@@ -174,7 +176,9 @@ export default function HomePage() {
   const [selectedMimeType,     setSelectedMimeType]     = useState('image/jpeg');
   const [cameraOpen,           setCameraOpen]           = useState(false);
   const [videoReady,           setVideoReady]           = useState(false);
+  const [countdown,            setCountdown]            = useState<number | null>(null);
   const [mounted,              setMounted]              = useState(false);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [scoreStatus,          setScoreStatus]          = useState('Complete AI Twin setup to begin.');
   const [setupOpen,            setSetupOpen]            = useState(true);
   const [isInitialized,        setIsInitialized]        = useState(false);
@@ -214,22 +218,13 @@ export default function HomePage() {
   // Merge server response over local score — prefer server fields when present
   const activeScore: ActiveScore = serverScore
     ? {
-        overall:           serverScore.score   ?? localScore.overall,
-        verdict:           serverScore.verdict  ?? localScore.verdict,
-        note:              serverScore.rationale || localScore.note,
-        personaComparison: serverScore.personaComparison || localScore.personaComparison,
-        idealAction:       serverScore.idealAction       || localScore.idealAction,
-        profileDeltas:     serverScore.profileDeltas     ?? localScore.profileDeltas,
-        dimensions: [
-          { label: 'Risk calibration',     value: serverScore.dimensions?.riskCalibration     ?? localScore.dimensions[0].value },
-          { label: 'Compliance alignment', value: serverScore.dimensions?.complianceAlignment ?? localScore.dimensions[1].value },
-          { label: 'Growth judgment',      value: serverScore.dimensions?.growthJudgment      ?? localScore.dimensions[2].value },
-          { label: 'AI governance',        value: serverScore.dimensions?.aiGovernance        ?? localScore.dimensions[3].value },
-          { label: 'AI cost discipline',   value: serverScore.dimensions?.aiCostDiscipline    ?? localScore.dimensions[4].value },
-        ],
+        overall:        serverScore.score          ?? localScore.overall,
+        verdict:        serverScore.verdict         ?? localScore.verdict,
+        coachNarrative: serverScore.coachNarrative  ?? localScore.coachNarrative,
+        idealAction:    serverScore.idealAction     ?? localScore.idealAction,
+        gaps:           serverScore.gaps            ?? localScore.gaps,
       }
     : localScore;
-
   const sliderValues: Record<string, number> = { risk, compliance, growth, aiTrust, aiCost };
   const sliderSetters: Record<string, (v: number) => void> = {
     risk: setRisk, compliance: setCompliance, growth: setGrowth,
@@ -256,6 +251,8 @@ export default function HomePage() {
 
   // ── Camera ──────────────────────────────────────────────────────────────────
   function stopCamera() {
+    if (countdownRef.current) { clearInterval(countdownRef.current); countdownRef.current = null; }
+    setCountdown(null);
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
     if (videoRef.current) { videoRef.current.pause(); videoRef.current.srcObject = null; }
@@ -338,7 +335,33 @@ export default function HomePage() {
     stopCamera();
   }
 
-  // ── Avatar generation ───────────────────────────────────────────────────────
+  function startCountdown() {
+    if (countdownRef.current) clearInterval(countdownRef.current);
+    setCountdown(10);
+    let remaining = 10;
+    countdownRef.current = setInterval(() => {
+      remaining -= 1;
+      if (remaining <= 0) {
+        clearInterval(countdownRef.current!);
+        countdownRef.current = null;
+        setCountdown(null);
+        capturePhoto();
+      } else {
+        setCountdown(remaining);
+      }
+    }, 1000);
+  }
+
+  function cancelCountdown() {
+    if (countdownRef.current) { clearInterval(countdownRef.current); countdownRef.current = null; }
+    setCountdown(null);
+  }
+
+  // Auto-start countdown as soon as the video feed is ready
+  useEffect(() => {
+    if (videoReady) startCountdown();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [videoReady]);
   async function generateAvatar() {
     if (!selectedImageBase64) return;
     setIsGeneratingAvatar(true);
@@ -424,6 +447,48 @@ export default function HomePage() {
   }
 
   if (!mounted) return null;
+
+  if (showLanding) return (
+    <div className="landing-shell">
+      <div className="landing-card">
+        <div className="landing-brand"><Sparkles size={28} /> AI Twin Challenge</div>
+        <h1 className="landing-title">Step into your AI persona.<br />Make the call.</h1>
+        <p className="landing-desc">
+          AI Twin Challenge is a decision-making simulation built for this hackathon.
+          You pick a business role, capture your photo to generate a caricature avatar,
+          then face real-world AI governance scenarios — approving deals, escalating risks,
+          rejecting proposals. Your choices are scored against how a well-calibrated executive
+          in that role would actually respond.
+        </p>
+
+        <div className="landing-steps">
+          {[
+            { n: '1', label: 'Choose your role', sub: 'CFO, Risk Officer, Head of Sales…' },
+            { n: '2', label: 'Capture & generate avatar', sub: 'Your face becomes a 3D caricature' },
+            { n: '3', label: 'Adjust your sliders', sub: 'Set your risk, compliance & growth priorities' },
+            { n: '4', label: 'Face the scenario', sub: 'Read the brief and make your call' },
+            
+          ].map((s) => (
+            <div className="landing-step" key={s.n}>
+              <div className="landing-step-n">{s.n}</div>
+              <div>
+                <div className="landing-step-label">{s.label}</div>
+                <div className="landing-step-sub">{s.sub}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <button
+          className="primary-btn landing-cta"
+          type="button"
+          onClick={() => { setShowLanding(false); setSetupOpen(true); }}
+        >
+          Build my AI Twin →
+        </button>
+      </div>
+    </div>
+  );
 
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
@@ -607,8 +672,8 @@ export default function HomePage() {
                     <button className="icon-btn" type="button" onClick={cameraOpen ? stopCamera : startCamera} aria-label="Toggle camera">
                       {cameraOpen ? <CameraOff size={15} /> : <Camera size={15} />}
                     </button>
-                    <button className="secondary-btn compact-btn" type="button" onClick={capturePhoto} disabled={!videoReady}>
-                      {cameraOpen && !videoReady ? 'Starting…' : 'Capture photo'}
+                    <button className="secondary-btn compact-btn" type="button" onClick={() => { cancelCountdown(); capturePhoto(); }} disabled={!videoReady}>
+                      {cameraOpen && !videoReady ? 'Starting…' : 'Capture now'}
                     </button>
                     <button className="primary-btn compact-btn" type="button" onClick={generateAvatar} disabled={!selectedImageBase64 || isGeneratingAvatar}>
                       {isGeneratingAvatar ? 'Generating…' : 'Generate avatar'}
@@ -621,7 +686,7 @@ export default function HomePage() {
                   <div className="setup-preview-card">
                     <div className="setup-preview-header">
                       <span>Preview</span>
-                      <span style={{ color: 'var(--muted)', fontWeight: 600 }}>{personaName}</span>
+                      <span className="preview-persona-name">{personaName}</span>
                     </div>
                     <div className="setup-preview-media">
                       {cameraOpen ? (
@@ -636,6 +701,19 @@ export default function HomePage() {
                             <div className="camera-guide-frame" ref={guideFrameRef} />
                             <div className="camera-guide-text">Center your face in the frame</div>
                           </div>
+                          {countdown !== null && (
+                            <div className="camera-countdown-overlay">
+                              <div className="camera-countdown-number">{countdown}</div>
+                              <div className="camera-countdown-label">Auto-capturing…</div>
+                              <button
+                                className="camera-countdown-cancel"
+                                type="button"
+                                onClick={cancelCountdown}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          )}
                           <button className="camera-close-btn" type="button" onClick={stopCamera} aria-label="Close camera">
                             <CameraOff size={15} />
                           </button>
@@ -710,7 +788,6 @@ export default function HomePage() {
             {/* Body */}
             <div className="results-modal-body">
               {isScoring ? (
-                /* ── Loading state ── */
                 <div className="score-loading" style={{ padding: '60px 20px' }}>
                   <div className="score-spinner-wrap">
                     <div className="twin-spinner twin-spinner-lg">
@@ -730,76 +807,55 @@ export default function HomePage() {
                     </div>
                   )}
 
-                  {/* ── 1. Overall score hero ── */}
-                  <div className="results-overall">
-                    <div className="results-overall-left">
-                      <span className="verdict-badge" style={{ fontSize: 12, padding: '4px 12px' }}>
-                        {activeScore.verdict}
-                      </span>
-                      <div className="results-overall-score">
-                        {activeScore.overall}
-                        <span style={{ fontSize: 16, fontWeight: 400, color: 'var(--muted)' }}>/100</span>
-                      </div>
-                    </div>
-                    <div className="results-overall-right">
-                      <ScoreBar value={activeScore.overall} />
-                      <p className="small" style={{ marginTop: 10, lineHeight: 1.6 }}>
-                        {activeScore.note}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* ── 2. Persona comparison narrative ── */}
-                  <div className="results-section">
-                    <div className="results-section-title">How a typical {role} would have responded</div>
-                    <p className="results-narrative">{activeScore.personaComparison}</p>
-                  </div>
-
-                  {/* ── 3. Action comparison ── */}
-                  <div className="results-section">
-                    <div className="results-section-title">Decision comparison</div>
-                    <div className="results-action-row">
-                      <div className="results-action-col results-action-col--user">
-                        <div className="results-col-label">Your call</div>
-                        <div className="results-col-action">{action}</div>
-                      </div>
-                      <div className="results-action-vs">vs</div>
-                      <div className="results-action-col results-action-col--ai">
-                        <div className="results-col-label">Recommended</div>
-                        <div className="results-col-action results-col-action--ai">{activeScore.idealAction}</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* ── 4. Profile delta table ── */}
-                  <div className="results-section">
-                    <div className="results-section-title">Your priorities vs ideal {role} profile</div>
-                    <div className="results-delta-table">
-                      {activeScore.profileDeltas.map((d) => (
-                        <div className="results-delta-row" key={d.label}>
-                          <span className="results-delta-label">{d.label}</span>
-                          <span className="results-delta-values">
-                            <span className="results-delta-user">{d.user}</span>
-                            <span className="results-delta-sep">→</span>
-                            <span className="results-delta-ideal">{d.ideal} ideal</span>
+                  {/* ── 1. Score hero ── */}
+                  <div className="results-hero">
+                    <div className="results-hero-left">
+                      <div className={`results-big-score ${activeScore.overall >= 82 ? 'score-high' : activeScore.overall >= 62 ? 'score-mid' : 'score-low'}`}>{activeScore.overall}<span className="results-big-score-denom">/100</span></div>
+                      <span className="verdict-badge">{activeScore.verdict}</span>
+                      <div className="results-slider-summary">
+                        {[
+                          { label: 'Risk',        value: profile.risk },
+                          { label: 'Compliance',  value: profile.compliance },
+                          { label: 'Growth',      value: profile.growth },
+                          { label: 'AI Trust',    value: profile.aiTrust },
+                          { label: 'AI Cost',     value: profile.aiCost },
+                        ].map((s) => (
+                          <span key={s.label} className="results-slider-chip">
+                            {s.label} <strong>{s.value}</strong>
                           </span>
-                          <DeltaPill direction={d.direction} />
+                        ))}
+                      </div>
+                    </div>
+                    <div className="results-hero-right">
+                      <div className="results-action-compare">
+                        <div className="rac-col">
+                          <div className="rac-label">Your call</div>
+                          <div className="rac-value rac-value--user">{action}</div>
                         </div>
-                      ))}
+                        <div className="rac-vs">vs</div>
+                        <div className="rac-col">
+                          <div className="rac-label">AI Decision</div>
+                          <div className="rac-value rac-value--ai">{activeScore.idealAction}</div>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  {/* ── 5. Dimension breakdown ── */}
+                  {/* ── 2. Coach narrative ── */}
                   <div className="results-section">
-                    <div className="results-section-title">Dimension scores</div>
-                    <div className="results-dimensions-grid">
-                      {activeScore.dimensions.map((item) => (
-                        <div className="results-dimension-item" key={item.label}>
-                          <div className="results-dimension-header">
-                            <span>{item.label}</span>
-                            <span className="score-value-badge">{item.value}</span>
-                          </div>
-                          <ScoreBar value={item.value} />
+                    <div className="results-section-title">Coach's take</div>
+                    <p className="results-narrative">{activeScore.coachNarrative}</p>
+                  </div>
+
+                  {/* ── 3. Key gaps — only shown when gaps exist ── */}
+                  <div className="results-section">
+                    <div className="results-section-title">Your profile vs ideal {role}</div>
+                    <div className="results-gaps">
+                      {activeScore.gaps.map((g) => (
+                        <div className="results-gap-row" key={g.label}>
+                          <span className="results-gap-label">{g.label}</span>
+                          <span className="results-gap-nums">{g.user} <span className="results-gap-arrow">→</span> {g.ideal} ideal</span>
+                          <DeltaPill direction={g.direction} />
                         </div>
                       ))}
                     </div>
