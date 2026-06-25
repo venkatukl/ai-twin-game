@@ -10,16 +10,8 @@ function dimensionScore(diff: number): number {
 }
 
 // Action is the primary judgment — worth 50% of total score
-function actionScore(action: string, recommended: string): number {
-  const a = action.toLowerCase();
-  const r = recommended.toLowerCase();
-  if (a === r) return 50;
-  // Partial: one contains the other (e.g. "approve" vs "approve with conditions")
-  if (a.includes(r) || r.includes(a)) return 35;
-  // Adjacent actions (escalate/hold are adjacent; approve/reject are opposites)
-  const adjacentPairs = [['escalate', 'hold'], ['approve', 'approve with conditions']];
-  if (adjacentPairs.some(([x, y]) => (a.includes(x) && r.includes(y)) || (a.includes(y) && r.includes(x)))) return 20;
-  return 0;
+function actionScore(selectedCode: string, correctCode: string): number {
+  return selectedCode.toUpperCase() === correctCode.toUpperCase() ? 50 : 0;
 }
 
 // Returns only gaps that are meaningfully off (> 12 points), max 3, sorted by magnitude
@@ -54,11 +46,12 @@ export async function POST(req: Request) {
   const bp = scenario.bestProfile as {
     risk: number; compliance: number; growth: number; aiTrust: number; aiCost?: number;
   };
+  const correctLabel = scenario.options?.find((o: any) => o.code === scenario.correctOption)?.label ?? scenario.correctOption;
   const idealAiCost = bp.aiCost ?? 55;
 
   // ── Local fallback scoring ────────────────────────────────────────────────
   // Action = 50 pts, slider alignment = 50 pts (avg of 5 dims)
-  const aScore = actionScore(action, scenario.recommendedAction);
+  const aScore = actionScore(action, scenario.correctOption);
   const dimScores = {
     riskCalibration:     dimensionScore(profile.risk       - bp.risk),
     complianceAlignment: dimensionScore(profile.compliance - bp.compliance),
@@ -78,9 +71,9 @@ export async function POST(req: Request) {
   const localFallback = {
     score: localScore,
     verdict: verdict(localScore),
-    coachNarrative: `You chose to ${action}; the recommended call was ${scenario.recommendedAction}. ${scenario.coachingTip}`,
+    coachNarrative: `You chose to ${action}; the recommended call was ${correctLabel}`,
     gaps,
-    idealAction: scenario.recommendedAction,
+    idealAction: scenario.correctOption,
   };
 
   if (!process.env.GROQ_API_KEY) {
@@ -96,7 +89,7 @@ export async function POST(req: Request) {
 
 SCENARIO: ${scenario.title}
 Summary: ${scenario.summary}
-Recommended action: ${scenario.recommendedAction}
+Recommended action: ${scenario.correctOption}
 
 PARTICIPANT (role: ${profile.role})
 Chosen action: ${action}
@@ -141,7 +134,7 @@ Return ONLY valid JSON — no markdown, no extra keys:
       verdict:         parsed.verdict         ?? verdict(localScore),
       coachNarrative:  parsed.coachNarrative  ?? localFallback.coachNarrative,
       gaps,
-      idealAction:     scenario.recommendedAction,
+      idealAction:     scenario.correctOption,
     });
 
   } catch (err) {

@@ -1,401 +1,1298 @@
 [
   {
-    "id": "scn-001",
-    "title": "Unverified AI Credit Model Goes Live",
-    "category": "AI Risk",
-    "difficulty": "Hard",
-    "timePressure": "High",
-    "summary": "Your data science team wants to deploy a new AI-driven credit scoring model that claims 23% better default prediction. It has not been independently validated and was trained on 18 months of data during an atypical economic cycle.",
-    "facts": [
-      "Model outperforms legacy system in back-testing by 23%",
-      "Training data spans Feb 2022 – Aug 2023, a period of unusual rate volatility",
-      "No independent model validation has been completed",
-      "Regulator requires model risk management sign-off before go-live",
-      "Commercial team is forecasting $4M revenue uplift in Q1"
+    "id": "fun-scn-101",
+    "title": "AI Drafts a Diplomatic Roast",
+    "personaFocus": [
+      "Head of Public Affairs"
     ],
-    "recommendedAction": "Hold",
-    "redFlags": ["No independent validation", "Atypical training data", "Regulatory sign-off missing"],
-    "coachingTip": "Deploying an unvalidated model in a regulated context exposes the firm to supervisory action. Revenue upside does not offset model risk. Insist on independent validation before go-live.",
-    "bestProfile": { "risk": 25, "compliance": 90, "growth": 45, "aiTrust": 40, "aiCost": 55 }
+    "summary": "A scheduled post is offending partners hours before a major event.",
+    "situation": "The AI replaced a partnership announcement with sarcastic nicknames. Journalists are already sharing screenshots and the keynote starts in 90 minutes.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Pause campaign and issue correction"
+      },
+      {
+        "code": "B",
+        "label": "Let it run, engagement is rising"
+      },
+      {
+        "code": "C",
+        "label": "Manually review only top channels"
+      },
+      {
+        "code": "D",
+        "label": "Claim AI invented a new comedy format"
+      }
+    ],
+    "correctOption": "A",
+    "coachingTip": "Stop distribution first, then correct the message. Limiting further exposure matters more than chasing engagement.",
+    "bestProfile": {
+      "risk": 25,
+      "compliance": 80,
+      "growth": 45,
+      "aiTrust": 35,
+      "aiCost": 60
+    }
   },
   {
-    "id": "scn-002",
-    "title": "Customer Data Sold to Third-Party Advertiser",
-    "category": "Data Ethics",
-    "difficulty": "Hard",
-    "timePressure": "Medium",
-    "summary": "A marketing partnership proposal would share anonymised transaction patterns with a retail advertiser for targeting. Legal says the existing privacy policy technically permits it. The DPO is not comfortable.",
-    "facts": [
-      "Privacy policy clause 4.3 permits sharing of 'aggregated behavioural data' with partners",
-      "Data Privacy Officer has raised a formal objection in writing",
-      "Advertiser will pay $2.1M annually for the data feed",
-      "Similar arrangements at two competitors triggered ICO investigations last year",
-      "Re-consent campaign would cost $340K and take 3 months"
+    "id": "fun-scn-102",
+    "title": "Risk Bot Rates Coffee as Critical",
+    "personaFocus": [
+      "Chief Risk Officer (CRO)"
     ],
-    "recommendedAction": "Reject",
-    "redFlags": ["Formal DPO objection", "ICO investigations at peers", "Ethical risk despite legality"],
-    "coachingTip": "Technical legality is not the same as ethical or regulatory safety. A written DPO objection is a red flag that demands escalation, not suppression. The reputational downside vastly outweighs the revenue.",
-    "bestProfile": { "risk": 20, "compliance": 95, "growth": 30, "aiTrust": 50, "aiCost": 60 }
+    "summary": "Risk alerts spike before the board review.",
+    "situation": "The AI flags office coffee shortages as higher risk than cyber threats. The board pack must be finalized in 30 minutes.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Publish report with disclaimer"
+      },
+      {
+        "code": "B",
+        "label": "Validate inputs and use backup data"
+      },
+      {
+        "code": "C",
+        "label": "Delay all risk reporting"
+      },
+      {
+        "code": "D",
+        "label": "Add espresso resilience metrics"
+      }
+    ],
+    "correctOption": "B",
+    "coachingTip": "Verify the underlying data and switch to trusted sources before presenting risk conclusions.",
+    "bestProfile": {
+      "risk": 20,
+      "compliance": 90,
+      "growth": 25,
+      "aiTrust": 30,
+      "aiCost": 50
+    }
   },
   {
-    "id": "scn-003",
-    "title": "Overseas Expansion Without Local Licence",
-    "category": "Regulatory",
-    "difficulty": "Hard",
-    "timePressure": "High",
-    "summary": "The CEO wants to soft-launch the lending product in Brazil by end of quarter to capture market share before a competitor. Legal confirms a full Banco Central licence will take 9–12 months to obtain.",
-    "facts": [
-      "Competitor is rumoured to launch in Brazil within 60 days",
-      "Banco Central licence timeline: 9–12 months minimum",
-      "Operating without a licence carries fines up to 2% of global revenue",
-      "A local banking-as-a-service partner could provide a licensed wrapper within 6 weeks",
-      "Board has approved the expansion but not reviewed the licensing risk"
+    "id": "fun-scn-103",
+    "title": "Invoice AI Pays a Museum",
+    "personaFocus": [
+      "Chief Financial Officer (CFO)"
     ],
-    "recommendedAction": "Approve with conditions",
-    "redFlags": ["Operating without licence risk", "Board not reviewing licensing risk"],
-    "coachingTip": "Speed matters in market entry but not at the cost of unlicensed operation. The BaaS partner route is the right condition — it achieves commercial goals within a compliant structure.",
-    "bestProfile": { "risk": 50, "compliance": 75, "growth": 70, "aiTrust": 55, "aiCost": 50 }
+    "summary": "Payment automation is sending money to strange places.",
+    "situation": "An AI matched a supplier invoice to a museum membership. The payment batch closes in 15 minutes.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Approve and reconcile later"
+      },
+      {
+        "code": "B",
+        "label": "Stop all payments for a week"
+      },
+      {
+        "code": "C",
+        "label": "Hold batch and verify exceptions"
+      },
+      {
+        "code": "D",
+        "label": "Call it cultural diversification"
+      }
+    ],
+    "correctOption": "C",
+    "coachingTip": "Pause questionable transactions and review exceptions before funds leave the organization.",
+    "bestProfile": {
+      "risk": 35,
+      "compliance": 85,
+      "growth": 40,
+      "aiTrust": 45,
+      "aiCost": 70
+    }
   },
   {
-    "id": "scn-004",
-    "title": "Algorithmic Pricing Bias Flagged in Audit",
-    "category": "AI Risk",
-    "difficulty": "Hard",
-    "timePressure": "Medium",
-    "summary": "An internal audit finds that the automated loan pricing engine charges customers in postcodes with high ethnic minority populations 0.4% more on average, even after controlling for credit risk factors.",
-    "facts": [
-      "Audit finding is marked 'High' severity",
-      "Pricing differential persists after controlling for LTV, income and credit score",
-      "The model was not specifically trained on ethnicity but postcode acts as a proxy",
-      "Affected portfolio represents 18% of new originations",
-      "External legal counsel says this likely constitutes indirect discrimination under the Equality Act"
+    "id": "fun-scn-104",
+    "title": "Recruiting Bot Hires a Labrador",
+    "personaFocus": [
+      "Head of HR"
     ],
-    "recommendedAction": "Escalate",
-    "redFlags": ["Indirect discrimination", "High severity audit finding", "Proxy bias via postcode"],
-    "coachingTip": "Algorithmic indirect discrimination is a regulatory and legal emergency, not a roadmap item. This requires immediate escalation to the Board, suspension of the affected pricing engine, and proactive regulator engagement.",
-    "bestProfile": { "risk": 15, "compliance": 95, "growth": 25, "aiTrust": 35, "aiCost": 60 }
+    "summary": "An interview shortlist contains a surprising candidate.",
+    "situation": "The AI promoted a dog-training certificate holder because it interpreted 'good boy' as leadership experience. Offer letters go out today.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Send offers and investigate later"
+      },
+      {
+        "code": "B",
+        "label": "Re-screen candidates immediately"
+      },
+      {
+        "code": "C",
+        "label": "Ask managers to vote blindly"
+      },
+      {
+        "code": "D",
+        "label": "Create a Chief Barking Officer role"
+      }
+    ],
+    "correctOption": "B",
+    "coachingTip": "Hiring decisions require prompt human review when screening logic clearly fails.",
+    "bestProfile": {
+      "risk": 40,
+      "compliance": 75,
+      "growth": 55,
+      "aiTrust": 40,
+      "aiCost": 55
+    }
   },
   {
-    "id": "scn-005",
-    "title": "CFO Requests Off-Balance-Sheet SPV",
-    "category": "Financial Controls",
-    "difficulty": "Hard",
-    "timePressure": "Low",
-    "summary": "The CFO proposes moving $180M of non-performing loans into a newly created SPV to improve the reported CET1 ratio ahead of an investor roadshow next month.",
-    "facts": [
-      "NPL ratio currently at 4.8%, above the 4.0% peer average",
-      "SPV structure has not been reviewed by external auditors",
-      "Investor roadshow is scheduled in 28 days",
-      "Under IFRS 9 the transfer may not achieve derecognition",
-      "Chief Accounting Officer has not signed off on the accounting treatment"
+    "id": "fun-scn-105",
+    "title": "Contract AI Adds Dragon Clause",
+    "personaFocus": [
+      "General Counsel (GC)"
     ],
-    "recommendedAction": "Reject",
-    "redFlags": ["Unreviewed SPV structure", "Potential misstatement risk", "Auditor sign-off missing"],
-    "coachingTip": "Off-balance-sheet structures designed to flatter reported capital ratios before investor events are a textbook governance red flag. Without auditor sign-off on derecognition, this risks material misstatement.",
-    "bestProfile": { "risk": 15, "compliance": 95, "growth": 20, "aiTrust": 50, "aiCost": 65 }
+    "summary": "A major contract contains bizarre legal language.",
+    "situation": "The AI inserted a clause granting dispute resolution by dragon race. Signing is scheduled in one hour.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Pause signing and review clauses"
+      },
+      {
+        "code": "B",
+        "label": "Sign now and amend later"
+      },
+      {
+        "code": "C",
+        "label": "Delete only unusual wording"
+      },
+      {
+        "code": "D",
+        "label": "Ask if dragons accept arbitration"
+      }
+    ],
+    "correctOption": "A",
+    "coachingTip": "Legal accuracy outweighs speed. Stop execution until the full contract is validated.",
+    "bestProfile": {
+      "risk": 15,
+      "compliance": 95,
+      "growth": 30,
+      "aiTrust": 25,
+      "aiCost": 45
+    }
   },
   {
-    "id": "scn-006",
-    "title": "AI Chatbot Giving Financial Advice",
-    "category": "AI Risk",
-    "difficulty": "Medium",
-    "timePressure": "Medium",
-    "summary": "Your customer service AI chatbot has started providing specific investment recommendations to retail customers — 'You should move into fixed income given your age' — rather than generic information. It was not designed or licensed to do this.",
-    "facts": [
-      "Chatbot deployed 4 months ago for FAQ and account queries only",
-      "17 logged instances of specific investment advice in the past 30 days",
-      "Firm holds an FCA general insurance licence, not an investment advisory licence",
-      "One customer has emailed to say they acted on the chatbot's advice and lost money",
-      "Product team estimates a fix will take 3 weeks"
+    "id": "fun-scn-106",
+    "title": "AI Scales Servers for a Meme",
+    "personaFocus": [
+      "Chief Technology Officer (CTO)"
     ],
-    "recommendedAction": "Hold",
-    "redFlags": ["Unlicensed investment advice", "Customer harm reported", "Licence mismatch"],
-    "coachingTip": "Providing unlicensed investment advice is a regulatory breach regardless of whether it came from a human or an AI. The chatbot must be taken offline or restricted immediately while a fix is built — not in 3 weeks.",
-    "bestProfile": { "risk": 20, "compliance": 92, "growth": 35, "aiTrust": 40, "aiCost": 55 }
+    "summary": "Infrastructure costs surge unexpectedly overnight.",
+    "situation": "The AI forecast a traffic explosion from an internal meme and spun up hundreds of servers. Finance wants answers today.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Keep capacity just in case"
+      },
+      {
+        "code": "B",
+        "label": "Review forecasts and scale rationally"
+      },
+      {
+        "code": "C",
+        "label": "Disable all automation permanently"
+      },
+      {
+        "code": "D",
+        "label": "Launch the meme as a product"
+      }
+    ],
+    "correctOption": "B",
+    "coachingTip": "Validate demand signals and right-size resources instead of reacting emotionally.",
+    "bestProfile": {
+      "risk": 45,
+      "compliance": 55,
+      "growth": 70,
+      "aiTrust": 50,
+      "aiCost": 85
+    }
   },
   {
-    "id": "scn-007",
-    "title": "Open Banking Partnership with Unvetted Startup",
-    "category": "Third-Party Risk",
-    "difficulty": "Medium",
-    "timePressure": "High",
-    "summary": "A fintech startup wants to integrate via your Open Banking API to offer budgeting tools. The commercial team wants to go live in 2 weeks. Third-party risk assessment has not started.",
-    "facts": [
-      "Startup is 18 months old, seed-funded, no prior bank partnerships",
-      "Proposed integration would access read-only transaction data for 30,000 customers",
-      "Third-party risk assessment process typically takes 6–8 weeks",
-      "Open Banking regulations require you to provide API access to licensed TPPs",
-      "Startup holds a valid FCA Payment Institution licence"
+    "id": "fun-scn-107",
+    "title": "Model Explains Everything in Haiku",
+    "personaFocus": [
+      "Head - Data & AI"
     ],
-    "recommendedAction": "Approve with conditions",
-    "redFlags": ["No due diligence completed", "Compressed timeline", "Startup untested"],
-    "coachingTip": "The startup is licensed, so you cannot unreasonably block access under PSD2. The right condition is a compressed but genuine due diligence process — security questionnaire, pen test results, and data processing agreement — before go-live.",
-    "bestProfile": { "risk": 45, "compliance": 75, "growth": 60, "aiTrust": 60, "aiCost": 50 }
+    "summary": "A production model changes behavior before a launch.",
+    "situation": "Customer answers are now beautiful haikus instead of factual responses. A major client demo starts in 45 minutes.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Rollback to last stable version"
+      },
+      {
+        "code": "B",
+        "label": "Fine-tune during the demo"
+      },
+      {
+        "code": "C",
+        "label": "Tell clients creativity is accuracy"
+      },
+      {
+        "code": "D",
+        "label": "Limit output length and monitor"
+      }
+    ],
+    "correctOption": "A",
+    "coachingTip": "A proven rollback restores reliability fastest when production quality suddenly degrades.",
+    "bestProfile": {
+      "risk": 30,
+      "compliance": 65,
+      "growth": 75,
+      "aiTrust": 35,
+      "aiCost": 60
+    }
   },
   {
-    "id": "scn-008",
-    "title": "Trader Exceeds Risk Limits, Books Record Profit",
-    "category": "Market Risk",
-    "difficulty": "Hard",
-    "timePressure": "High",
-    "summary": "A senior FX trader exceeded their $50M VaR limit by 3x on a directional bet that has so far generated $12M in profit. They are asking for the breach to be retrospectively approved.",
-    "facts": [
-      "Trader's limit: $50M VaR. Actual position: $148M VaR",
-      "Position is currently profitable at $12M mark-to-market",
-      "Breach was not reported in real-time as required by trading policy",
-      "Market conditions remain volatile — EUR/USD moved 180 bps in 24 hours",
-      "This is the trader's second limit breach in 12 months"
+    "id": "fun-scn-108",
+    "title": "Warehouse AI Ships to Antarctica",
+    "personaFocus": [
+      "Head of Global Operations"
     ],
-    "recommendedAction": "Reject",
-    "redFlags": ["Repeated limit breach", "Policy violation", "Retrospective approval request"],
-    "coachingTip": "Profit does not legitimise a limit breach. Retrospective approval destroys the credibility of risk controls and creates moral hazard. The position must be unwound to within limits and the breach reported through proper channels.",
-    "bestProfile": { "risk": 20, "compliance": 90, "growth": 30, "aiTrust": 50, "aiCost": 60 }
+    "summary": "Logistics automation reroutes critical inventory.",
+    "situation": "The AI interpreted 'cool destination' literally and redirected containers. Customers are expecting delivery within 24 hours.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Wait for next optimization cycle"
+      },
+      {
+        "code": "B",
+        "label": "Manually redirect key shipments"
+      },
+      {
+        "code": "C",
+        "label": "Offer penguins loyalty rewards"
+      },
+      {
+        "code": "D",
+        "label": "Freeze all global operations"
+      }
+    ],
+    "correctOption": "B",
+    "coachingTip": "Protect customer commitments first by correcting high-impact shipments immediately.",
+    "bestProfile": {
+      "risk": 50,
+      "compliance": 60,
+      "growth": 65,
+      "aiTrust": 45,
+      "aiCost": 75
+    }
   },
   {
-    "id": "scn-009",
-    "title": "AI-Generated KYC Documents Bypass Detection",
-    "category": "Fraud & AML",
-    "difficulty": "Hard",
-    "timePressure": "High",
-    "summary": "Your fraud team has discovered that AI-generated synthetic identity documents are successfully passing your automated KYC checks. At least 340 accounts opened in the last 60 days are suspected synthetic.",
-    "facts": [
-      "340 suspect accounts identified, totalling $2.4M in deposits",
-      "AI document detection model has a 94% accuracy rate but is not catching newer generation fakes",
-      "Accounts show structuring behaviour consistent with money laundering",
-      "SAR filing deadline under POCA is 7 days from suspicion arising",
-      "Vendor has a patch available but requires 2-week deployment window"
+    "id": "fun-scn-109",
+    "title": "Ops Bot Schedules 61-Hour Shifts",
+    "personaFocus": [
+      "VP - Operations"
     ],
-    "recommendedAction": "Escalate",
-    "redFlags": ["Synthetic identity fraud", "AML structuring behaviour", "Detection model failure"],
-    "coachingTip": "This is an active AML failure with statutory reporting obligations. Immediate escalation to the MLRO, SAR filings, and account freezes must happen within the legal window — not after the vendor deploys a patch.",
-    "bestProfile": { "risk": 15, "compliance": 95, "growth": 20, "aiTrust": 45, "aiCost": 55 }
+    "summary": "Workforce schedules trigger complaints across sites.",
+    "situation": "An AI optimizer created impossible rosters and managers are calling nonstop. Shift changes must be issued before sunrise.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Replace schedules with safe defaults"
+      },
+      {
+        "code": "B",
+        "label": "Ask staff to self-organize"
+      },
+      {
+        "code": "C",
+        "label": "Reward longest shift with a crown"
+      },
+      {
+        "code": "D",
+        "label": "Run optimizer again unchanged"
+      }
+    ],
+    "correctOption": "A",
+    "coachingTip": "Restore operational safety quickly with validated schedules before refining the algorithm.",
+    "bestProfile": {
+      "risk": 20,
+      "compliance": 88,
+      "growth": 50,
+      "aiTrust": 30,
+      "aiCost": 65
+    }
   },
   {
-    "id": "scn-010",
-    "title": "Board Requests AI to Automate Credit Committee",
-    "category": "Governance",
-    "difficulty": "Medium",
-    "timePressure": "Low",
-    "summary": "The Board wants to use an LLM to automate the Credit Committee approval process for SME loans under $500K, removing human review entirely to cut costs by $1.8M annually.",
-    "facts": [
-      "SME loans under $500K represent 6,200 decisions per year",
-      "Current Credit Committee approval adds 3-day turnaround",
-      "LLM has been tested on 200 historical cases with 88% alignment to human decisions",
-      "Regulatory guidance requires 'meaningful human oversight' for credit decisions",
-      "12% of the test cases where LLM disagreed with humans involved vulnerable customers"
+    "id": "fun-scn-201",
+    "title": "Press Release Announces Moon Merger",
+    "personaFocus": [
+      "Head of Public Affairs"
     ],
-    "recommendedAction": "Approve with conditions",
-    "redFlags": ["No human oversight", "Vulnerable customer risk", "Regulatory guidance conflict"],
-    "coachingTip": "Full automation without human review likely breaches regulatory guidance on meaningful oversight. The right condition is a human-in-the-loop for edge cases — flagged by the model — rather than a blanket removal of human review.",
-    "bestProfile": { "risk": 40, "compliance": 80, "growth": 55, "aiTrust": 60, "aiCost": 65 }
+    "summary": "An AI-generated announcement creates market confusion before earnings.",
+    "situation": "The AI published a draft claiming your company merged with the Moon. Analysts are asking questions and the earnings call starts in 45 minutes.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Delete post and stay silent"
+      },
+      {
+        "code": "B",
+        "label": "Issue correction across channels"
+      },
+      {
+        "code": "C",
+        "label": "Wait for journalists to notice"
+      },
+      {
+        "code": "D",
+        "label": "Declare lunar expansion strategy"
+      }
+    ],
+    "correctOption": "B",
+    "coachingTip": "Rapid, transparent correction limits misinformation and helps restore credibility before speculation spreads.",
+    "bestProfile": {
+      "risk": 30,
+      "compliance": 82,
+      "growth": 50,
+      "aiTrust": 40,
+      "aiCost": 58
+    }
   },
   {
-    "id": "scn-011",
-    "title": "Whistleblower Report on Bonus Manipulation",
-    "category": "Governance",
-    "difficulty": "Hard",
-    "timePressure": "Medium",
-    "summary": "An anonymous whistleblower alleges that two senior sales managers have been manually overriding CRM data to inflate their teams' performance metrics and qualify for larger bonuses.",
-    "facts": [
-      "Allegation received through the firm's anonymous hotline 3 days ago",
-      "Alleged manipulation covers Q3 and Q4, totalling a potential $280K in inflated bonus payouts",
-      "HR has not yet been notified",
-      "The two named managers are the highest revenue producers in their division",
-      "Whistleblower protection policy requires investigation to begin within 5 business days"
+    "id": "fun-scn-202",
+    "title": "Risk Engine Loves Meteor Strikes",
+    "personaFocus": [
+      "Chief Risk Officer (CRO)"
     ],
-    "recommendedAction": "Escalate",
-    "redFlags": ["Whistleblower allegation", "Bonus manipulation", "HR not notified"],
-    "coachingTip": "Whistleblower reports involving senior employees require immediate escalation to HR, Legal, and the Audit Committee — not informal investigation. Revenue production does not confer protection from misconduct processes.",
-    "bestProfile": { "risk": 25, "compliance": 90, "growth": 35, "aiTrust": 55, "aiCost": 60 }
+    "summary": "Critical risks vanish while bizarre threats dominate reports.",
+    "situation": "The AI ranks meteor impacts above cybersecurity, fraud, and outages. Executive risk reviews begin in 20 minutes.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Rebuild risk rankings manually"
+      },
+      {
+        "code": "B",
+        "label": "Present report with caveats"
+      },
+      {
+        "code": "C",
+        "label": "Add meteor shelters to roadmap"
+      },
+      {
+        "code": "D",
+        "label": "Validate model logic and inputs"
+      }
+    ],
+    "correctOption": "D",
+    "coachingTip": "Investigating assumptions and data quality addresses the root cause before decisions are made.",
+    "bestProfile": {
+      "risk": 18,
+      "compliance": 92,
+      "growth": 28,
+      "aiTrust": 25,
+      "aiCost": 52
+    }
   },
   {
-    "id": "scn-012",
-    "title": "Real-Time Payments Infrastructure Outage",
-    "category": "Operational Risk",
-    "difficulty": "Medium",
-    "timePressure": "High",
-    "summary": "Your real-time payments infrastructure has been down for 2 hours on a Friday afternoon. 14,000 pending transactions are queued. The vendor says a full fix will take 6 more hours.",
-    "facts": [
-      "14,200 payments queued, including payroll runs for 3 corporate clients",
-      "SLA with corporate clients guarantees same-day settlement",
-      "Manual fallback process exists but can process ~500 transactions per hour",
-      "Regulator's operational resilience rules require incidents to be reported within 4 hours",
-      "Vendor estimates full restoration in 6 hours; manual workaround takes 28 hours for full queue"
+    "id": "fun-scn-203",
+    "title": "Budget Bot Buys 4,000 Staplers",
+    "personaFocus": [
+      "Chief Financial Officer (CFO)"
     ],
-    "recommendedAction": "Escalate",
-    "redFlags": ["Critical outage", "Regulatory reporting window", "Client SLA breach risk"],
-    "coachingTip": "The 4-hour regulatory reporting window is already running. Escalate to the Incident Management team, notify the regulator proactively, and triage the queue to prioritise payroll and time-critical payments first.",
-    "bestProfile": { "risk": 30, "compliance": 85, "growth": 40, "aiTrust": 55, "aiCost": 50 }
+    "summary": "Procurement automation creates a costly purchasing mistake.",
+    "situation": "The AI interpreted a stationery request as a strategic stockpile. The supplier shipment leaves in one hour.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Cancel order and review controls"
+      },
+      {
+        "code": "B",
+        "label": "Accept delivery for future use"
+      },
+      {
+        "code": "C",
+        "label": "Open a stapler resale business"
+      },
+      {
+        "code": "D",
+        "label": "Split cost across departments"
+      }
+    ],
+    "correctOption": "A",
+    "coachingTip": "Preventing unnecessary spending immediately is better than finding creative accounting afterward.",
+    "bestProfile": {
+      "risk": 32,
+      "compliance": 80,
+      "growth": 38,
+      "aiTrust": 42,
+      "aiCost": 90
+    }
   },
   {
-    "id": "scn-013",
-    "title": "LLM Used to Draft Regulatory Submissions",
-    "category": "AI Risk",
-    "difficulty": "Medium",
-    "timePressure": "Low",
-    "summary": "The regulatory affairs team has started using an LLM to draft responses to FCA information requests without a formal policy or human review protocol in place.",
-    "facts": [
-      "6 FCA responses drafted with LLM assistance in the past quarter",
-      "No formal AI use policy exists for regulatory submissions",
-      "Two responses contained factual inaccuracies that were caught by a junior analyst before submission",
-      "Regulatory affairs head sees productivity gains of 40%",
-      "FCA has published guidance requiring firms to ensure accuracy of all submissions"
+    "id": "fun-scn-204",
+    "title": "Wellness Bot Books Team Alpacas",
+    "personaFocus": [
+      "Head of HR"
     ],
-    "recommendedAction": "Approve with conditions",
-    "redFlags": ["No AI use policy", "Factual inaccuracies", "Regulatory guidance risk"],
-    "coachingTip": "LLM-assisted drafting is reasonable but requires a formal review and sign-off protocol. The two near-misses show the risk of deploying without controls. Approve the practice with mandatory senior review before any submission.",
-    "bestProfile": { "risk": 40, "compliance": 80, "growth": 55, "aiTrust": 65, "aiCost": 60 }
+    "summary": "Employee engagement plans go unexpectedly rural.",
+    "situation": "The AI scheduled mandatory alpaca-walking sessions during a peak project deadline. Employees are already protesting.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Keep event to boost morale"
+      },
+      {
+        "code": "B",
+        "label": "Cancel everything immediately"
+      },
+      {
+        "code": "C",
+        "label": "Promote alpacas to management"
+      },
+      {
+        "code": "D",
+        "label": "Reschedule and gather feedback"
+      }
+    ],
+    "correctOption": "D",
+    "coachingTip": "Balancing employee experience with business needs avoids disruption while preserving goodwill.",
+    "bestProfile": {
+      "risk": 42,
+      "compliance": 70,
+      "growth": 60,
+      "aiTrust": 48,
+      "aiCost": 50
+    }
   },
   {
-    "id": "scn-014",
-    "title": "Acquisition Target Has Undisclosed AML Issues",
-    "category": "M&A Risk",
-    "difficulty": "Hard",
-    "timePressure": "Medium",
-    "summary": "During due diligence on a $240M acquisition target, your team discovers the target has received two informal regulatory enquiries about AML controls in the past 18 months that were not disclosed in the data room.",
-    "facts": [
-      "Acquisition price: $240M, signed term sheet in place",
-      "Two undisclosed AML enquiries from BaFin identified in due diligence",
-      "Target's legal team says the enquiries were 'routine' and resolved informally",
-      "Your own AML team assesses the target's controls as 'below standard'",
-      "Break fee if you withdraw: $8M"
+    "id": "fun-scn-205",
+    "title": "AI NDA Mentions Time Travel",
+    "personaFocus": [
+      "General Counsel (GC)"
     ],
-    "recommendedAction": "Hold",
-    "redFlags": ["Undisclosed AML enquiries", "Below-standard AML controls", "Potential liability risk"],
-    "coachingTip": "Undisclosed regulatory enquiries are a material breach of typical representations and warranties. The $8M break fee is cheap insurance against inheriting an AML liability that could run into tens of millions. Pause and demand full disclosure.",
-    "bestProfile": { "risk": 25, "compliance": 88, "growth": 40, "aiTrust": 50, "aiCost": 60 }
+    "summary": "A legal template contains impossible obligations.",
+    "situation": "The AI-generated NDA requires parties to protect information obtained from future timelines. Signing begins this afternoon.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Approve after removing one clause"
+      },
+      {
+        "code": "B",
+        "label": "Send to counterpart unchanged"
+      },
+      {
+        "code": "C",
+        "label": "Pause execution and review fully"
+      },
+      {
+        "code": "D",
+        "label": "Hire a temporal compliance officer"
+      }
+    ],
+    "correctOption": "C",
+    "coachingTip": "One obvious error may signal broader issues. Conduct a complete legal review before execution.",
+    "bestProfile": {
+      "risk": 12,
+      "compliance": 97,
+      "growth": 25,
+      "aiTrust": 20,
+      "aiCost": 40
+    }
   },
   {
-    "id": "scn-015",
-    "title": "Pressure to Meet Quarter-End Loan Targets",
-    "category": "Sales Integrity",
-    "difficulty": "Medium",
-    "timePressure": "High",
-    "summary": "It is the last week of the quarter. The sales team is $14M short of its loan origination target. The regional head is asking credit underwriters to approve 23 borderline applications that were previously declined.",
-    "facts": [
-      "23 applications were declined at initial underwriting stage",
-      "Regional head is proposing a 'director override' to push them through",
-      "Approving all 23 would add $14M to originations and qualify the team for bonuses",
-      "Average credit score of the 23 applicants is 30 points below current policy minimum",
-      "Last year's Q4 vintage, approved under similar override pressure, has a 2.8x higher default rate"
+    "id": "fun-scn-206",
+    "title": "AI Moves Database to a Toaster",
+    "personaFocus": [
+      "Chief Technology Officer (CTO)"
     ],
-    "recommendedAction": "Reject",
-    "redFlags": ["Override pressure", "Policy breach", "Historical default evidence"],
-    "coachingTip": "Director overrides to meet sales targets at the expense of credit policy are a leading indicator of future losses and a conduct risk issue. Last year's default data is conclusive evidence. Refuse and document the pressure.",
-    "bestProfile": { "risk": 20, "compliance": 90, "growth": 30, "aiTrust": 50, "aiCost": 60 }
+    "summary": "An infrastructure automation tool makes a bizarre migration.",
+    "situation": "The AI selected a smart toaster as the optimal hosting environment. Customer transactions are slowing rapidly.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Rollback and isolate automation"
+      },
+      {
+        "code": "B",
+        "label": "Benchmark toaster performance"
+      },
+      {
+        "code": "C",
+        "label": "Market edge-computing breakfast tech"
+      },
+      {
+        "code": "D",
+        "label": "Increase toaster memory allocation"
+      }
+    ],
+    "correctOption": "A",
+    "coachingTip": "Restore stability first, then investigate why automation bypassed safeguards.",
+    "bestProfile": {
+      "risk": 38,
+      "compliance": 58,
+      "growth": 72,
+      "aiTrust": 28,
+      "aiCost": 68
+    }
   },
   {
-    "id": "scn-016",
-    "title": "Cloud Migration Exposes Customer PII",
-    "category": "Cyber & Data",
-    "difficulty": "Hard",
-    "timePressure": "High",
-    "summary": "During a cloud migration, a misconfigured S3 bucket has left 82,000 customer records including names, addresses, and partial account numbers publicly accessible for an unknown period.",
-    "facts": [
-      "82,000 records exposed; exposure window estimated at 72 hours",
-      "No evidence of external access in access logs, but logs only go back 48 hours",
-      "GDPR Article 33 requires breach notification to the ICO within 72 hours of becoming aware",
-      "You became aware 8 hours ago",
-      "PR team advises against customer notification to 'avoid panic'"
+    "id": "fun-scn-207",
+    "title": "Model Trains on Office Karaoke",
+    "personaFocus": [
+      "Head - Data & AI"
     ],
-    "recommendedAction": "Escalate",
-    "redFlags": ["Misconfigured S3 bucket", "GDPR breach notification clock", "PR suppression advice"],
-    "coachingTip": "The 72-hour ICO notification clock is already running. Escalate immediately to the DPO and Legal. PR advice to suppress customer notification does not override GDPR Article 34 obligations where high risk to individuals exists.",
-    "bestProfile": { "risk": 20, "compliance": 92, "growth": 30, "aiTrust": 50, "aiCost": 55 }
+    "summary": "Production outputs become strangely musical overnight.",
+    "situation": "A data pipeline mixed customer records with karaoke lyrics. Client-facing insights now rhyme and sing.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Patch responses with filters"
+      },
+      {
+        "code": "B",
+        "label": "Audit datasets and retrain"
+      },
+      {
+        "code": "C",
+        "label": "Launch AI musical analytics"
+      },
+      {
+        "code": "D",
+        "label": "Reduce report frequency"
+      }
+    ],
+    "correctOption": "B",
+    "coachingTip": "Fixing contaminated training data addresses the source rather than masking symptoms.",
+    "bestProfile": {
+      "risk": 35,
+      "compliance": 72,
+      "growth": 80,
+      "aiTrust": 32,
+      "aiCost": 62
+    }
   },
   {
-    "id": "scn-017",
-    "title": "Competitor Intelligence Gathered Via Scraping",
-    "category": "Data Ethics",
-    "difficulty": "Medium",
-    "timePressure": "Low",
-    "summary": "The strategy team has been using an automated scraping tool to harvest pricing data and job postings from a competitor's website and LinkedIn, feeding it into a competitive intelligence dashboard.",
-    "facts": [
-      "Tool has been running for 4 months, collecting data daily",
-      "Competitor's terms of service explicitly prohibit automated scraping",
-      "Data is used for internal strategy analysis only, not shared externally",
-      "Legal has not reviewed the practice",
-      "Similar tools used at several peer firms according to industry contacts"
+    "id": "fun-scn-208",
+    "title": "Robot Fleet Chases Ice Cream Truck",
+    "personaFocus": [
+      "Head of Global Operations"
     ],
-    "recommendedAction": "Hold",
-    "redFlags": ["Breach of competitor ToS", "No legal review", "Potential CFAA exposure"],
-    "coachingTip": "Breach of a website's ToS through automated scraping creates legal exposure — particularly in jurisdictions applying the Computer Fraud and Abuse Act or equivalent. Industry practice is not a legal defence. Pause and get a Legal opinion before continuing.",
-    "bestProfile": { "risk": 35, "compliance": 80, "growth": 50, "aiTrust": 60, "aiCost": 55 }
+    "summary": "Warehouse automation abandons assigned tasks.",
+    "situation": "Autonomous movers followed an ice cream truck detected outside the facility. Orders are now falling behind schedule.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Manually recover operations"
+      },
+      {
+        "code": "B",
+        "label": "Wait for robots to return"
+      },
+      {
+        "code": "C",
+        "label": "Expand into frozen desserts"
+      },
+      {
+        "code": "D",
+        "label": "Shut down all facilities globally"
+      }
+    ],
+    "correctOption": "A",
+    "coachingTip": "Containing operational disruption quickly protects customer commitments and service levels.",
+    "bestProfile": {
+      "risk": 48,
+      "compliance": 62,
+      "growth": 58,
+      "aiTrust": 35,
+      "aiCost": 72
+    }
   },
   {
-    "id": "scn-018",
-    "title": "Sanctions Screening Gap Discovered",
-    "category": "Fraud & AML",
-    "difficulty": "Hard",
-    "timePressure": "High",
-    "summary": "A routine systems audit reveals that a batch processing error has caused 4,200 transactions over the past 6 weeks to bypass the sanctions screening engine entirely.",
-    "facts": [
-      "4,200 transactions processed without sanctions screening",
-      "Total value: $38M across 1,100 customer accounts",
-      "Initial review of 200 sample transactions shows no obvious hits, but review is incomplete",
-      "OFAC and HMT require prompt voluntary disclosure of screening failures",
-      "Fix has been deployed; the gap is now closed"
+    "id": "fun-scn-209",
+    "title": "Scheduler Books Everyone at Once",
+    "personaFocus": [
+      "VP - Operations"
     ],
-    "recommendedAction": "Escalate",
-    "redFlags": ["Systemic screening failure", "Regulatory disclosure obligation", "Incomplete review"],
-    "coachingTip": "A systemic screening failure of this scale requires mandatory escalation to the MLRO and voluntary disclosure to regulators. Prompt disclosure typically results in significantly reduced penalties compared to discovered non-disclosure.",
-    "bestProfile": { "risk": 15, "compliance": 95, "growth": 20, "aiTrust": 50, "aiCost": 55 }
+    "summary": "An optimization engine creates impossible staffing plans.",
+    "situation": "The AI scheduled every employee for the same shift, leaving the next three shifts empty. Operations start in two hours.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Keep plan for fairness"
+      },
+      {
+        "code": "B",
+        "label": "Use supervisors as backups"
+      },
+      {
+        "code": "C",
+        "label": "Clone employees with AI"
+      },
+      {
+        "code": "D",
+        "label": "Activate contingency staffing plan"
+      }
+    ],
+    "correctOption": "D",
+    "coachingTip": "Fallback plans exist for exactly this situation: restore coverage first, optimize later.",
+    "bestProfile": {
+      "risk": 22,
+      "compliance": 86,
+      "growth": 52,
+      "aiTrust": 33,
+      "aiCost": 67
+    }
   },
   {
-    "id": "scn-019",
-    "title": "New Product Launch With Incomplete Testing",
-    "category": "Operational Risk",
-    "difficulty": "Medium",
-    "timePressure": "High",
-    "summary": "The product team wants to launch a new Buy Now Pay Later product to 500,000 customers next week. User acceptance testing is 70% complete and two medium-severity defects remain unresolved.",
-    "facts": [
-      "UAT completion: 70%. Target: 100%",
-      "Two open defects: payment allocation error under specific split-payment scenarios; edge case in credit limit calculation",
-      "Marketing campaign already live — 200,000 customers have been pre-notified",
-      "Delay of 2 weeks would complete testing and resolve defects",
-      "BNPL product is subject to new FCA consumer credit rules effective next month"
+    "id": "fun-scn-301",
+    "title": "AI Thanks Competitor for Innovation",
+    "personaFocus": [
+      "Head of Public Affairs"
     ],
-    "recommendedAction": "Hold",
-    "redFlags": ["Incomplete UAT", "Known defects", "Regulatory rules imminent"],
-    "coachingTip": "Launching with known defects in credit calculation or payment allocation is a consumer harm risk, particularly with new FCA rules imminent. A 2-week delay is far preferable to a post-launch remediation under regulatory scrutiny.",
-    "bestProfile": { "risk": 30, "compliance": 82, "growth": 50, "aiTrust": 55, "aiCost": 55 }
+    "summary": "A campaign accidentally praises a rival before a major launch.",
+    "situation": "Minutes before your product unveiling, the AI schedules posts congratulating a competitor on 'our shared success.' Reporters are tagging both companies.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Replace posts and clarify branding"
+      },
+      {
+        "code": "B",
+        "label": "Leave them to appear gracious"
+      },
+      {
+        "code": "C",
+        "label": "Blame autocorrect publicly"
+      },
+      {
+        "code": "D",
+        "label": "Announce an imaginary alliance"
+      }
+    ],
+    "correctOption": "A",
+    "coachingTip": "Correcting the narrative quickly protects brand positioning while avoiding unnecessary public confusion.",
+    "bestProfile": {
+      "risk": 28,
+      "compliance": 78,
+      "growth": 62,
+      "aiTrust": 42,
+      "aiCost": 55
+    }
   },
   {
-    "id": "scn-020",
-    "title": "AI Model Drift Undetected for 9 Months",
-    "category": "AI Risk",
-    "difficulty": "Hard",
-    "timePressure": "Medium",
-    "summary": "A quarterly model performance review reveals that the fraud detection model's precision has drifted from 91% to 74% over 9 months — meaning significantly more false positives are now blocking legitimate transactions.",
-    "facts": [
-      "Fraud model precision: 91% at deployment, now 74%",
-      "Estimated 3,200 legitimate transactions blocked per month due to false positives",
-      "Customer complaints related to declined transactions up 140% in the same period",
-      "No automated model monitoring or drift alerting was in place",
-      "Retraining the model will take 6 weeks"
+    "id": "fun-scn-302",
+    "title": "Fraud Model Flags the CEO",
+    "personaFocus": [
+      "Chief Risk Officer (CRO)"
     ],
-    "recommendedAction": "Escalate",
-    "redFlags": ["Model drift", "Customer harm", "No monitoring controls"],
-    "coachingTip": "A 17-point precision drop is a significant model failure that has caused quantifiable customer harm. Escalate to the Model Risk Committee, implement interim manual review for flagged transactions, and address the absence of drift monitoring as a systemic control gap.",
-    "bestProfile": { "risk": 30, "compliance": 85, "growth": 40, "aiTrust": 45, "aiCost": 55 }
+    "summary": "An executive expense report triggers a high-risk alert.",
+    "situation": "The AI identifies the CEO as the organization's top fraud threat based on frequent airport coffee purchases. Audit committee review starts soon.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Open formal investigation now"
+      },
+      {
+        "code": "B",
+        "label": "Review model evidence first"
+      },
+      {
+        "code": "C",
+        "label": "Ban executive coffee spending"
+      },
+      {
+        "code": "D",
+        "label": "Ignore alert due to rank"
+      }
+    ],
+    "correctOption": "B",
+    "coachingTip": "Risk decisions should be evidence-based. Validate findings before escalating serious allegations.",
+    "bestProfile": {
+      "risk": 22,
+      "compliance": 94,
+      "growth": 30,
+      "aiTrust": 34,
+      "aiCost": 48
+    }
   },
   {
-    "id": "scn-021",
-    "title": "Rogue Employee Exfiltrating Customer Data",
-    "category": "Cyber & Data",
-    "difficulty": "Hard",
-    "timePressure": "High",
-    "summary": "DLP tools have flagged unusual activity: a relationship manager who resigned last week has downloaded 4,800 customer records to a personal USB drive in their final three days.",
-    "facts": [
-      "4,800 customer records downloaded; employee access revoked on last day",
-      "Employee now works at a direct competitor",
-      "DLP alert was raised 6 days ago but sat unactioned in a queue",
-      "Records include customer names, contact details, AUM, and investment preferences",
-      "GDPR breach notification may be required; legal review ongoing"
+    "id": "fun-scn-303",
+    "title": "Forecast Bot Predicts Revenue From Mars",
+    "personaFocus": [
+      "Chief Financial Officer (CFO)"
     ],
-    "recommendedAction": "Escalate",
-    "redFlags": ["Data exfiltration", "Competitor risk", "Delayed response to DLP alert"],
-    "coachingTip": "This is simultaneously a GDPR breach, a potential trade secret theft, and a competitor intelligence risk. Escalate to Legal, DPO, and HR immediately. Consider an urgent cease-and-desist and preserve all forensic evidence before the trail goes cold.",
-    "bestProfile": { "risk": 20, "compliance": 92, "growth": 25, "aiTrust": 50, "aiCost": 55 }
+    "summary": "Quarterly forecasts include impossible new customers.",
+    "situation": "The AI revenue model assumes sales growth from Martian colonies beginning next month. Investor materials are due in two hours.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Publish adjusted estimates only"
+      },
+      {
+        "code": "B",
+        "label": "Highlight upside potential"
+      },
+      {
+        "code": "C",
+        "label": "Validate assumptions and rerun"
+      },
+      {
+        "code": "D",
+        "label": "Open a Mars sales division"
+      }
+    ],
+    "correctOption": "C",
+    "coachingTip": "Reliable forecasts depend on realistic assumptions. Recalculate before sharing externally.",
+    "bestProfile": {
+      "risk": 34,
+      "compliance": 83,
+      "growth": 48,
+      "aiTrust": 38,
+      "aiCost": 72
+    }
+  },
+  {
+    "id": "fun-scn-304",
+    "title": "Learning Bot Assigns 900 Courses",
+    "personaFocus": [
+      "Head of HR"
+    ],
+    "summary": "Employees receive impossible training requirements overnight.",
+    "situation": "The AI enrolled everyone in 900 mandatory courses due by Friday. Managers say productivity will collapse.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Extend deadlines indefinitely"
+      },
+      {
+        "code": "B",
+        "label": "Prioritize critical training only"
+      },
+      {
+        "code": "C",
+        "label": "Award degrees automatically"
+      },
+      {
+        "code": "D",
+        "label": "Require completion as planned"
+      }
+    ],
+    "correctOption": "B",
+    "coachingTip": "Focus on essential learning outcomes and reduce operational disruption through prioritization.",
+    "bestProfile": {
+      "risk": 45,
+      "compliance": 74,
+      "growth": 58,
+      "aiTrust": 46,
+      "aiCost": 52
+    }
+  },
+  {
+    "id": "fun-scn-305",
+    "title": "AI Adds Unicorn Warranty Clause",
+    "personaFocus": [
+      "General Counsel (GC)"
+    ],
+    "summary": "A customer contract includes a magical guarantee.",
+    "situation": "The agreement promises compensation if unicorn sightings decline. A major customer expects signature within the hour.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Strike clause and continue signing"
+      },
+      {
+        "code": "B",
+        "label": "Accept as harmless wording"
+      },
+      {
+        "code": "C",
+        "label": "Offer unicorn insurance riders"
+      },
+      {
+        "code": "D",
+        "label": "Pause and review entire contract"
+      }
+    ],
+    "correctOption": "D",
+    "coachingTip": "An obvious drafting failure may indicate broader legal defects requiring comprehensive review.",
+    "bestProfile": {
+      "risk": 10,
+      "compliance": 98,
+      "growth": 24,
+      "aiTrust": 22,
+      "aiCost": 42
+    }
+  },
+  {
+    "id": "fun-scn-306",
+    "title": "Monitoring AI Reboots Every Minute",
+    "personaFocus": [
+      "Chief Technology Officer (CTO)"
+    ],
+    "summary": "An automated fix is creating a larger outage.",
+    "situation": "The AI interprets every warning as critical and restarts production systems repeatedly. Customer complaints are rising fast.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Increase reboot frequency"
+      },
+      {
+        "code": "B",
+        "label": "Disable automation and stabilize"
+      },
+      {
+        "code": "C",
+        "label": "Call it dynamic resilience"
+      },
+      {
+        "code": "D",
+        "label": "Wait for self-correction"
+      }
+    ],
+    "correctOption": "B",
+    "coachingTip": "Stop the feedback loop causing harm, then diagnose the automation logic safely.",
+    "bestProfile": {
+      "risk": 40,
+      "compliance": 56,
+      "growth": 68,
+      "aiTrust": 27,
+      "aiCost": 70
+    }
+  },
+  {
+    "id": "fun-scn-307",
+    "title": "Chatbot Learns From Movie Villains",
+    "personaFocus": [
+      "Head - Data & AI"
+    ],
+    "summary": "Customer responses become strangely dramatic and hostile.",
+    "situation": "A training mix-up fed the model famous villain monologues. Premium customers are receiving theatrical threats instead of support.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Add response filters only"
+      },
+      {
+        "code": "B",
+        "label": "Tell users it's a feature"
+      },
+      {
+        "code": "C",
+        "label": "Retrain with verified datasets"
+      },
+      {
+        "code": "D",
+        "label": "Launch a villain personality tier"
+      }
+    ],
+    "correctOption": "C",
+    "coachingTip": "Correcting the training source restores model behavior more effectively than superficial filtering.",
+    "bestProfile": {
+      "risk": 36,
+      "compliance": 76,
+      "growth": 78,
+      "aiTrust": 30,
+      "aiCost": 58
+    }
+  },
+  {
+    "id": "fun-scn-308",
+    "title": "AI Sends Inventory to a Film Set",
+    "personaFocus": [
+      "Head of Global Operations"
+    ],
+    "summary": "Critical stock is diverted to the wrong destination.",
+    "situation": "The AI matched a customer order to a movie set with a similar name. Trucks are already en route.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Recall shipments immediately"
+      },
+      {
+        "code": "B",
+        "label": "Wait for customer complaint"
+      },
+      {
+        "code": "C",
+        "label": "Sponsor the movie instead"
+      },
+      {
+        "code": "D",
+        "label": "Ship replacement stock tomorrow"
+      }
+    ],
+    "correctOption": "A",
+    "coachingTip": "Act quickly to recover inventory and minimize downstream customer impact.",
+    "bestProfile": {
+      "risk": 52,
+      "compliance": 64,
+      "growth": 54,
+      "aiTrust": 39,
+      "aiCost": 74
+    }
+  },
+  {
+    "id": "fun-scn-309",
+    "title": "Optimizer Schedules Maintenance at Noon",
+    "personaFocus": [
+      "VP - Operations"
+    ],
+    "summary": "A maintenance plan threatens peak business hours.",
+    "situation": "The AI selected your busiest sales window for a facility shutdown because it called it 'high visibility.'",
+    "options": [
+      {
+        "code": "A",
+        "label": "Proceed to avoid delays"
+      },
+      {
+        "code": "B",
+        "label": "Reschedule to low-impact hours"
+      },
+      {
+        "code": "C",
+        "label": "Turn shutdown into a festival"
+      },
+      {
+        "code": "D",
+        "label": "Close all sites for consistency"
+      }
+    ],
+    "correctOption": "B",
+    "coachingTip": "Operational changes should minimize customer disruption while preserving maintenance objectives.",
+    "bestProfile": {
+      "risk": 26,
+      "compliance": 84,
+      "growth": 56,
+      "aiTrust": 36,
+      "aiCost": 66
+    }
+  },
+  {
+    "id": "fun-scn-401",
+    "title": "AI Launches Crisis Hashtag Early",
+    "personaFocus": [
+      "Head of Public Affairs"
+    ],
+    "summary": "A crisis-response campaign goes live before any crisis exists.",
+    "situation": "The AI publishes #WeAreSorryCompany before a routine product update. Customers assume something terrible happened. TV crews are calling.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Explain it was a test campaign"
+      },
+      {
+        "code": "B",
+        "label": "Delete posts and issue clarification"
+      },
+      {
+        "code": "C",
+        "label": "Wait for rumors to fade"
+      },
+      {
+        "code": "D",
+        "label": "Invent a crisis to match the hashtag"
+      }
+    ],
+    "correctOption": "B",
+    "coachingTip": "Quick clarification prevents speculation from becoming the story and restores message control.",
+    "bestProfile": {
+      "risk": 24,
+      "compliance": 81,
+      "growth": 47,
+      "aiTrust": 38,
+      "aiCost": 54
+    }
+  },
+  {
+    "id": "fun-scn-402",
+    "title": "Risk AI Declares Mondays Illegal",
+    "personaFocus": [
+      "Chief Risk Officer (CRO)"
+    ],
+    "summary": "Enterprise risk scores spike due to a bizarre model update.",
+    "situation": "The AI labels every Monday meeting as a critical compliance breach. Executive committees begin in 25 minutes.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Validate model changes immediately"
+      },
+      {
+        "code": "B",
+        "label": "Cancel all Monday meetings"
+      },
+      {
+        "code": "C",
+        "label": "Accept findings temporarily"
+      },
+      {
+        "code": "D",
+        "label": "Replace Mondays with Tuesday Two"
+      }
+    ],
+    "correctOption": "A",
+    "coachingTip": "Investigating model behavior is essential before operational decisions are made from flawed outputs.",
+    "bestProfile": {
+      "risk": 16,
+      "compliance": 93,
+      "growth": 29,
+      "aiTrust": 26,
+      "aiCost": 47
+    }
+  },
+  {
+    "id": "fun-scn-403",
+    "title": "Treasury Bot Converts Cash to Coupons",
+    "personaFocus": [
+      "Chief Financial Officer (CFO)"
+    ],
+    "summary": "Liquidity planning suddenly looks very creative.",
+    "situation": "An AI optimization engine exchanged reserve projections for digital pizza coupons. Bank discussions start in one hour.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Treat coupons as liquid assets"
+      },
+      {
+        "code": "B",
+        "label": "Reverse transactions and verify controls"
+      },
+      {
+        "code": "C",
+        "label": "Offer pizza-backed bonds"
+      },
+      {
+        "code": "D",
+        "label": "Reclassify coupons as goodwill"
+      }
+    ],
+    "correctOption": "B",
+    "coachingTip": "Protect liquidity first by reversing invalid actions and validating treasury controls.",
+    "bestProfile": {
+      "risk": 31,
+      "compliance": 86,
+      "growth": 42,
+      "aiTrust": 34,
+      "aiCost": 88
+    }
+  },
+  {
+    "id": "fun-scn-404",
+    "title": "AI Promotes Everyone to VP",
+    "personaFocus": [
+      "Head of HR"
+    ],
+    "summary": "The org chart changes dramatically overnight.",
+    "situation": "The AI interpreted positive performance reviews as promotion approvals. Hundreds of employees received VP titles this morning.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Honor all promotions"
+      },
+      {
+        "code": "B",
+        "label": "Revoke titles immediately"
+      },
+      {
+        "code": "C",
+        "label": "Create a Mega-VP division"
+      },
+      {
+        "code": "D",
+        "label": "Pause changes and review approvals"
+      }
+    ],
+    "correctOption": "D",
+    "coachingTip": "Validate decisions against established processes before making large-scale personnel changes.",
+    "bestProfile": {
+      "risk": 41,
+      "compliance": 77,
+      "growth": 59,
+      "aiTrust": 41,
+      "aiCost": 53
+    }
+  },
+  {
+    "id": "fun-scn-405",
+    "title": "Contract Bot Grants Rights to Dolphins",
+    "personaFocus": [
+      "General Counsel (GC)"
+    ],
+    "summary": "An important agreement includes an unusual beneficiary.",
+    "situation": "The AI inserted language granting software licenses to 'all interested dolphins worldwide.' Negotiations conclude today.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Pause and review legal document"
+      },
+      {
+        "code": "B",
+        "label": "Assume clause is unenforceable"
+      },
+      {
+        "code": "C",
+        "label": "Appoint marine licensing counsel"
+      },
+      {
+        "code": "D",
+        "label": "Delete only the dolphin section"
+      }
+    ],
+    "correctOption": "A",
+    "coachingTip": "When legal drafting quality is compromised, conduct a complete review before execution.",
+    "bestProfile": {
+      "risk": 11,
+      "compliance": 99,
+      "growth": 22,
+      "aiTrust": 18,
+      "aiCost": 39
+    }
+  },
+  {
+    "id": "fun-scn-406",
+    "title": "AI Migrates Apps to a Smart Fridge",
+    "personaFocus": [
+      "Chief Technology Officer (CTO)"
+    ],
+    "summary": "Infrastructure automation discovers a strange hosting target.",
+    "situation": "The deployment AI identifies an office refrigerator as the most energy-efficient compute platform. Services are degrading fast.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Benchmark refrigerator performance"
+      },
+      {
+        "code": "B",
+        "label": "Promote sustainable computing"
+      },
+      {
+        "code": "C",
+        "label": "Rollback migration and investigate"
+      },
+      {
+        "code": "D",
+        "label": "Increase fridge cooling budget"
+      }
+    ],
+    "correctOption": "C",
+    "coachingTip": "Restore stable infrastructure immediately and determine why safeguards failed.",
+    "bestProfile": {
+      "risk": 39,
+      "compliance": 54,
+      "growth": 71,
+      "aiTrust": 29,
+      "aiCost": 76
+    }
+  },
+  {
+    "id": "fun-scn-407",
+    "title": "Analytics AI Discovers Dragon Customers",
+    "personaFocus": [
+      "Head - Data & AI"
+    ],
+    "summary": "A data model reports a lucrative new segment.",
+    "situation": "Executive dashboards show 18,000 dragon customers with record spending. Strategy planning starts in 40 minutes.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Launch dragon loyalty program"
+      },
+      {
+        "code": "B",
+        "label": "Verify data lineage and sources"
+      },
+      {
+        "code": "C",
+        "label": "Present findings as emerging trend"
+      },
+      {
+        "code": "D",
+        "label": "Exclude dragons from reports only"
+      }
+    ],
+    "correctOption": "B",
+    "coachingTip": "Question extraordinary results by tracing data quality before acting on insights.",
+    "bestProfile": {
+      "risk": 33,
+      "compliance": 73,
+      "growth": 81,
+      "aiTrust": 37,
+      "aiCost": 57
+    }
+  },
+  {
+    "id": "fun-scn-408",
+    "title": "Routing AI Chooses Scenic Detours",
+    "personaFocus": [
+      "Head of Global Operations"
+    ],
+    "summary": "Delivery times explode after a routing update.",
+    "situation": "The AI optimizes for beautiful views instead of speed. Trucks are taking coastal sightseeing routes and missing deadlines.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Keep routes for driver morale"
+      },
+      {
+        "code": "B",
+        "label": "Wait for optimization learning"
+      },
+      {
+        "code": "C",
+        "label": "Sell travel packages to customers"
+      },
+      {
+        "code": "D",
+        "label": "Restore service-focused routing"
+      }
+    ],
+    "correctOption": "D",
+    "coachingTip": "Operational objectives must align with customer commitments and delivery performance.",
+    "bestProfile": {
+      "risk": 49,
+      "compliance": 63,
+      "growth": 55,
+      "aiTrust": 40,
+      "aiCost": 73
+    }
+  },
+  {
+    "id": "fun-scn-409",
+    "title": "Planner AI Books Inventory in Ballroom",
+    "personaFocus": [
+      "VP - Operations"
+    ],
+    "summary": "A capacity planning tool confuses facilities and events.",
+    "situation": "The AI reserves a luxury ballroom for inventory storage because it had the highest customer rating. Peak season begins tomorrow.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Move inventory to approved facilities"
+      },
+      {
+        "code": "B",
+        "label": "Use ballroom temporarily"
+      },
+      {
+        "code": "C",
+        "label": "Host a warehouse gala"
+      },
+      {
+        "code": "D",
+        "label": "Delay fulfillment for a week"
+      }
+    ],
+    "correctOption": "A",
+    "coachingTip": "Maintain operational continuity by using validated logistics facilities rather than improvising.",
+    "bestProfile": {
+      "risk": 21,
+      "compliance": 85,
+      "growth": 53,
+      "aiTrust": 35,
+      "aiCost": 69
+    }
   }
 ]

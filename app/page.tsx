@@ -4,7 +4,17 @@ import { Camera, CameraOff, LoaderCircle, Pencil, Sparkles } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react';
 import scenarios from '@/data/scenarios.json';
 
-type Scenario = (typeof scenarios)[number];
+type Scenario = {
+  id: string;
+  title: string;
+  personaFocus: string[];
+  summary: string;
+  situation: string;
+  options: { code: string; label: string }[];
+  correctOption: string;
+  coachingTip?: string;
+  bestProfile: { risk: number; compliance: number; growth: number; aiTrust: number; aiCost?: number };
+};
 
 type ProfileDelta = { label: string; user: number; ideal: number; direction: string };
 
@@ -40,8 +50,8 @@ type AvatarStyleValue =
   | 'anime-executive'
   | 'futuristic-fintech-commander'
   | 'minimal-editorial-portrait';
+  
 
-const actions = ['Approve', 'Approve with conditions', 'Escalate', 'Hold', 'Reject'];
 
 const avatarStyleOptions: { value: AvatarStyleValue; label: string }[] = [
   { value: 'pixar-3d-masterpiece',         label: 'Pixar 3D Masterpiece' },
@@ -92,9 +102,9 @@ function scoreScenario(
   const idealAiCost = bp.aiCost ?? 55;
 
   const aScore = (() => {
-    const a = action.toLowerCase(), r = scenario.recommendedAction.toLowerCase();
-    if (a === r) return 50;
-    if (a.includes(r) || r.includes(a)) return 35;
+    const correct = scenario.correctOption.toLowerCase();
+    const chosen  = action.toLowerCase();
+    if (chosen === correct) return 50;
     return 0;
   })();
   const dimScores = [
@@ -107,21 +117,28 @@ function scoreScenario(
   const sliderAvg = Math.round(dimScores.reduce((a, b) => a + b, 0) / 5);
   const overall   = Math.max(20, Math.min(100, Math.round(aScore + sliderAvg * 0.5)));
 
+  const chosenLabel  = scenario.options.find(o => o.code === action)?.label ?? action;
+  const correctLabel = scenario.options.find(o => o.code === scenario.correctOption)?.label ?? scenario.correctOption;
+
   return {
     overall,
     verdict: overall >= 82 ? 'Strong balance' : overall >= 62 ? 'Promising but exposed' : 'Needs tighter controls',
-    coachNarrative: `You chose to ${action}; the recommended call was ${scenario.recommendedAction}. ${scenario.coachingTip}`,
-    idealAction: scenario.recommendedAction,
+    coachNarrative: `You chose "${chosenLabel}". The right call was "${correctLabel}". ${scenario.coachingTip ?? ''}`.trim(),
+    idealAction: correctLabel,
     gaps: topGaps(profile, bp, idealAiCost),
   };
 }
 
 function getPersonaName(role: string, risk: number, compliance: number, growth: number) {
-  if (role === 'CFO')                    return compliance >= 85 ? 'Captain Compliance' : risk >= 70 ? 'Bold CFO' : 'Strategy Spark';
-  if (role === 'Chief Risk Officer')     return risk <= 30 ? 'Guardian Grid' : compliance >= 80 ? 'Risk Sentinel' : 'Caution Commander';
-  if (role === 'Head of Sales')          return growth >= 75 ? 'Growth Gladiator' : 'Deal Driver';
-  if (role === 'Operations Leader')      return compliance >= 80 ? 'Process Pro' : 'Efficiency Edge';
-  if (role === 'Product Owner')          return growth >= 75 ? 'Bold Pathfinder' : 'Vision Architect';
+  if (role === 'Chief Financial Officer (CFO)')   return compliance >= 85 ? 'Captain Compliance' : risk >= 70 ? 'Bold CFO' : 'Strategy Spark';
+  if (role === 'Chief Risk Officer (CRO)')        return risk <= 30 ? 'Guardian Grid' : compliance >= 80 ? 'Risk Sentinel' : 'Caution Commander';
+  if (role === 'Chief Technology Officer (CTO)')  return growth >= 75 ? 'Tech Trailblazer' : 'System Architect';
+  if (role === 'Head of HR')                      return growth >= 75 ? 'People Champion' : 'Culture Keeper';
+  if (role === 'General Counsel (GC)')            return compliance >= 80 ? 'Rule of Law' : 'Deal Maker';
+  if (role === 'Head - Data & AI')                return growth >= 75 ? 'Data Maverick' : 'AI Steward';
+  if (role === 'Head of Public Affairs')          return risk <= 30 ? 'Safe Messenger' : 'Bold Voice';
+  if (role === 'Head of Global Operations')       return compliance >= 75 ? 'Ops Commander' : 'Efficiency Edge';
+  if (role === 'VP - Operations')                 return risk <= 40 ? 'Process Pro' : 'Scale Master';
   return 'Strategy Spark';
 }
 
@@ -152,7 +169,7 @@ function DeltaPill({ direction }: { direction: string }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function HomePage() {
-  const [role,       setRole]       = useState('CFO');
+  const [role,       setRole]       = useState('Head of Public Affairs');
   const [risk,       setRisk]       = useState(35);
   const [compliance, setCompliance] = useState(85);
   const [growth,     setGrowth]     = useState(70);
@@ -162,7 +179,7 @@ export default function HomePage() {
   const [showLanding, setShowLanding] = useState(true);
 
   const [index,  setIndex]  = useState(() => Math.floor(Math.random() * scenarios.length));
-  const [action, setAction] = useState('Approve with conditions');
+  const [action, setAction] = useState('');
 
   const [sourceImageSrc,      setSourceImageSrc]      = useState<string | null>(null);
   const [avatarSrc,            setAvatarSrc]            = useState<string | null>(null);
@@ -203,7 +220,12 @@ export default function HomePage() {
   const streamRef    = useRef<MediaStream | null>(null);
   const guideFrameRef = useRef<HTMLDivElement | null>(null);
 
-  const scenario         = scenarios[index % scenarios.length] as Scenario;
+  const personaScenarios = useMemo(() => {
+  const matched = (scenarios as Scenario[]).filter(s => s.personaFocus.includes(role));
+  return matched.length > 0 ? matched : (scenarios as Scenario[]);
+  }, [role]);
+
+  const scenario = personaScenarios[index % personaScenarios.length] as Scenario;
   const personaName      = getPersonaName(role, risk, compliance, growth);
   const selectedStyleLabel = avatarStyleOptions.find((o) => o.value === avatarStyle)?.label ?? avatarStyleOptions[0].label;
   const resolvedAvatarSrc  = avatarSrc || sourceImageSrc || fallbackAvatarSrc;
@@ -425,24 +447,24 @@ export default function HomePage() {
   // ── Next scenario ────────────────────────────────────────────────────────────
   function nextScenario() {
     if (!isInitialized) return;
-    setUsedIndices((prev) => {
-      const next = new Set(prev);
-      next.add(index);
-      if (next.size >= scenarios.length) next.clear();
-      return next;
-    });
-    setIndex((prev) => {
-      const pool = Array.from({ length: scenarios.length }, (_, i) => i)
-        .filter((i) => i !== prev && !usedIndices.has(i));
-      return pool.length > 0
-        ? pool[Math.floor(Math.random() * pool.length)]
-        : Math.floor(Math.random() * scenarios.length);
-    });
+  setUsedIndices((prev) => {
+    const next = new Set(prev);
+    next.add(index);
+    if (next.size >= personaScenarios.length) next.clear();
+    return next;
+  });
+  setIndex((prev) => {
+    const pool = Array.from({ length: personaScenarios.length }, (_, i) => i)
+      .filter((i) => i !== prev && !usedIndices.has(i));
+    return pool.length > 0
+      ? pool[Math.floor(Math.random() * pool.length)]
+      : Math.floor(Math.random() * personaScenarios.length);
+  });
     setServerScore(null);
     setShowJudgingPanel(false);
     setScoringFailed(false);
     setShowResultsDialog(false);
-    setAction('Approve with conditions');
+    setAction('');
     setScoreStatus(`You are the ${role}. Read the scenario and make your call.`);
   }
 
@@ -453,21 +475,14 @@ export default function HomePage() {
       <div className="landing-card">
         <div className="landing-brand"><Sparkles size={28} /> AI Twin Challenge</div>
         <h1 className="landing-title">Step into your AI persona.<br />Make the call.</h1>
-        <p className="landing-desc">
-          AI Twin Challenge is a decision-making simulation built for this hackathon.
-          You pick a business role, capture your photo to generate a caricature avatar,
-          then face real-world AI governance scenarios — approving deals, escalating risks,
-          rejecting proposals. Your choices are scored against how a well-calibrated executive
-          in that role would actually respond.
-        </p>
 
         <div className="landing-steps">
           {[
-            { n: '1', label: 'Choose your role', sub: 'CFO, Risk Officer, Head of Sales…' },
-            { n: '2', label: 'Capture & generate avatar', sub: 'Your face becomes a 3D caricature' },
-            { n: '3', label: 'Adjust your sliders', sub: 'Set your risk, compliance & growth priorities' },
-            { n: '4', label: 'Face the scenario', sub: 'Read the brief and make your call' },
-            
+            { n: '1', label: 'Pick your role',            sub: 'Choose from CFO, CTO, General Counsel and more' },
+            { n: '2', label: 'Generate your avatar',      sub: 'Snap a photo — we turn it into a 3D caricature' },
+            { n: '3', label: 'Set your priorities',       sub: 'Adjust sliders for risk, compliance, growth & AI trust' },
+            { n: '4', label: 'Face the scenario',         sub: 'Read a chaotic AI situation and pick your response' },
+            { n: '5', label: 'See how your twin decides', sub: 'Get coached on what the ideal executive would have done' },
           ].map((s) => (
             <div className="landing-step" key={s.n}>
               <div className="landing-step-n">{s.n}</div>
@@ -565,27 +580,31 @@ export default function HomePage() {
                   </div>
                 )}
 
-                <div className="scenario-tag">{scenario.category}</div>
-                <div className="scenario-meta">{scenario.difficulty} · {scenario.timePressure} pressure</div>
+              <div className="scenario-tag">{scenario.personaFocus.join(' · ')}</div>
                 <h1 className="scenario-title">{scenario.title}</h1>
                 <p className="scenario-summary">{scenario.summary}</p>
-                <ul className="bullets">
-                  {scenario.facts.map((fact) => <li key={fact}>{fact}</li>)}
-                </ul>
+                <p className="scenario-situation">{scenario.situation}</p>
               </div>
 
               <div className="decision-zone">
                 <div className="decision-zone-label">What would you do as the {role}?</div>
                   <div className="choice-grid">
-                    {actions.map((item) => (
+                    {scenario.options.map((opt) => (
                       <button
-                        key={item}
+                        key={opt.code}
                         type="button"
-                        className={`choice ${action === item ? 'active' : ''}`}
-                        onClick={() => setAction(item)}
+                        className={`choice ${
+                            action === opt.code ? 'active' : ''
+                          } ${
+                            showJudgingPanel && opt.code === scenario.correctOption ? 'correct' : ''
+                          } ${
+                            showJudgingPanel && action === opt.code && opt.code !== scenario.correctOption ? 'wrong' : ''
+                          }`}
+                        onClick={() => setAction(opt.code)}
                         disabled={!isInitialized || showJudgingPanel}
                       >
-                        {item}
+                        <span className="choice-code">{opt.code}</span>
+                        <span className="choice-label">{opt.label}</span>
                       </button>
                     ))}
                   </div>
@@ -623,11 +642,11 @@ export default function HomePage() {
                     className="primary-btn"
                     type="button"
                     onClick={scoreRound}
-                    disabled={!isInitialized || isScoring}
+                    disabled={!isInitialized || isScoring || !action }
                   >
                     {isScoring
-                      ? <span className="btn-inline"><LoaderCircle size={15} className="spin" /> Judging…</span>
-                      : 'Judge my decision'}
+                      ? <span className="btn-inline"><LoaderCircle size={15} className="spin" /> Asking your Twin…</span>
+                      : 'How would my Twin decide?'}
                   </button>
                 )}
               </div>              
@@ -653,14 +672,18 @@ export default function HomePage() {
                   <div className="field-group">
                     <label className="label" htmlFor="role-select">Business persona</label>
                     <select id="role-select" className="select" value={role} onChange={(e) => setRole(e.target.value)}>
-                      <option value="CFO">CFO</option>
-                      <option value="Chief Risk Officer">Chief Risk Officer</option>
-                      <option value="Head of Sales">Head of Sales</option>
-                      <option value="Operations Leader">Operations Leader</option>
-                      <option value="Product Owner">Product Owner</option>
+                      <option value="Head of Public Affairs">Head of Public Affairs</option>
+                      <option value="Chief Risk Officer (CRO)">Chief Risk Officer (CRO)</option>
+                      <option value="Chief Financial Officer (CFO)">Chief Financial Officer (CFO)</option>
+                      <option value="Head of HR">Head of HR</option>
+                      <option value="General Counsel (GC)">General Counsel (GC)</option>
+                      <option value="Chief Technology Officer (CTO)">Chief Technology Officer (CTO)</option>
+                      <option value="Head - Data & AI">Head - Data & AI</option>
+                      <option value="Head of Global Operations">Head of Global Operations</option>
+                      <option value="VP - Operations">VP - Operations</option>
                     </select>
                   </div>
-                  <div className="field-group">
+                  <div style={{ display: 'none' }}>
                     <label className="label" htmlFor="style-select">Avatar style</label>
                     <select id="style-select" className="select" value={avatarStyle} onChange={(e) => setAvatarStyle(e.target.value as AvatarStyleValue)}>
                       {avatarStyleOptions.map((o) => (
@@ -743,7 +766,7 @@ export default function HomePage() {
                     </div>
                     <div className="setup-preview-meta">
                       <div className="active-avatar-name">{personaName}</div>
-                      <div className="small">{role} · {selectedStyleLabel}</div>
+                      <div className="small">{role}</div>
                     </div>
                   </div>
                 </div>
@@ -810,32 +833,31 @@ export default function HomePage() {
                   {/* ── 1. Score hero ── */}
                   <div className="results-hero">
                     <div className="results-hero-left">
-                      <div className={`results-big-score ${activeScore.overall >= 82 ? 'score-high' : activeScore.overall >= 62 ? 'score-mid' : 'score-low'}`}>{activeScore.overall}<span className="results-big-score-denom">/100</span></div>
-                      <span className="verdict-badge">{activeScore.verdict}</span>
-                      <div className="results-slider-summary">
-                        {[
-                          { label: 'Risk',        value: profile.risk },
-                          { label: 'Compliance',  value: profile.compliance },
-                          { label: 'Growth',      value: profile.growth },
-                          { label: 'AI Trust',    value: profile.aiTrust },
-                          { label: 'AI Cost',     value: profile.aiCost },
-                        ].map((s) => (
-                          <span key={s.label} className="results-slider-chip">
-                            {s.label} <strong>{s.value}</strong>
-                          </span>
-                        ))}
-                      </div>
+                      {resolvedAvatarSrc && (
+                        <img
+                          src={resolvedAvatarSrc}
+                          alt="Your avatar"
+                          className="results-avatar"
+                        />
+                      )}
+                      <div className="results-avatar-name">{personaName}</div>
                     </div>
                     <div className="results-hero-right">
                       <div className="results-action-compare">
                         <div className="rac-col">
                           <div className="rac-label">Your call</div>
-                          <div className="rac-value rac-value--user">{action}</div>
+                          <div className="rac-value rac-value--user">
+                            {action
+                              ? (scenario.options.find(o => o.code === action)?.label ?? action)
+                              : '—'}
+                          </div>
                         </div>
                         <div className="rac-vs">vs</div>
                         <div className="rac-col">
-                          <div className="rac-label">AI Decision</div>
-                          <div className="rac-value rac-value--ai">{activeScore.idealAction}</div>
+                          <div className="rac-label">The Right Call</div>
+                          <div className="rac-value rac-value--ai">
+                            {scenario.options.find(o => o.code === scenario.correctOption)?.label ?? scenario.correctOption}
+                          </div>
                         </div>
                       </div>
                     </div>
