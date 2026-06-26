@@ -107,7 +107,7 @@ Return ONLY valid JSON — no markdown, no extra keys:
 {
   "score": <integer 0-100, following the rules above>,
   "verdict": <exactly one of: "Strong balance" | "Promising but exposed" | "Needs tighter controls">,
-  "coachNarrative": "<4-5 sentences, direct second-person voice. 1) Was the action right or wrong and why. 2) What a well-calibrated ${profile.role} would have done. 3) The one most important slider gap and its real-world implication. 4) One concrete takeaway. No bullet points, no preamble.>"
+  "coachNarrative": "<2-3 sentences MAX. Never start with 'You chose' or 'Your action was' — lead immediately with the insight. Cover: was the action right or wrong and the single most important reason why, then the one key slider gap and its real implication. Hard limit: 45 words. If you exceed 45 words, rewrite shorter.>"
 }`;
 
   try {
@@ -118,7 +118,7 @@ Return ONLY valid JSON — no markdown, no extra keys:
         model: GROQ_MODEL,
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.35,
-        max_tokens: 400,
+        max_tokens: 250,
         response_format: { type: 'json_object' },
       }),
     });

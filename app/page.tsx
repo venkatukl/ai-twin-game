@@ -1,7 +1,7 @@
 'use client';
 
 import { Camera, CameraOff, LoaderCircle, Pencil, Sparkles } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import scenarios from '@/data/scenarios.json';
 
 type Scenario = {
@@ -167,6 +167,21 @@ function DeltaPill({ direction }: { direction: string }) {
   );
 }
 
+function Typewriter({ text }: { text: string }) {
+  const [displayed, setDisplayed] = useState('');
+  useEffect(() => {
+    setDisplayed('');
+    let i = 0;
+    const interval = setInterval(() => {
+      setDisplayed(text.slice(0, i + 1));
+      i++;
+      if (i >= text.length) clearInterval(interval);
+    }, 8);
+    return () => clearInterval(interval);
+  }, [text]);
+  return <>{displayed}</>;
+}
+
 // ── Main component ────────────────────────────────────────────────────────────
 export default function HomePage() {
   const [role,       setRole]       = useState('Head of Public Affairs');
@@ -200,7 +215,12 @@ export default function HomePage() {
   const [setupOpen,            setSetupOpen]            = useState(true);
   const [isInitialized,        setIsInitialized]        = useState(false);
   const [usedIndices,          setUsedIndices]          = useState<Set<number>>(() => new Set());
-
+  const [chipBubble, setChipBubble] = useState<string | null>(null);
+  const [chipVisible, setChipVisible] = useState(false);
+  const [chipWiggle,  setChipWiggle]  = useState(false);
+  const [verdictOverlay, setVerdictOverlay] = useState<'correct' | 'wrong' | 'partial' | null>(null);
+ 
+  
   const FALLBACK_POOL = [
   '/avatars/fallback-1.png',
   '/avatars/fallback-2.png',
@@ -355,12 +375,14 @@ export default function HomePage() {
     setSourceImageSrc(dataUrl);
     setAvatarSrc(null);
     stopCamera();
+    // Auto-generate immediately using local variable — avoids stale state
+    window.setTimeout(() => generateAvatar(base64, 'image/jpeg'), 900);
   }
 
   function startCountdown() {
     if (countdownRef.current) clearInterval(countdownRef.current);
-    setCountdown(10);
-    let remaining = 10;
+    setCountdown(7);
+    let remaining = 7;
     countdownRef.current = setInterval(() => {
       remaining -= 1;
       if (remaining <= 0) {
@@ -384,41 +406,157 @@ export default function HomePage() {
     if (videoReady) startCountdown();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoReady]);
-  async function generateAvatar() {
-    if (!selectedImageBase64) return;
-    setIsGeneratingAvatar(true);
-    try {
-      const response = await fetch('/api/avatar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          imageBase64:    selectedImageBase64,
-          mimeType:       selectedMimeType,
-          persona:        `${personaName} | role=${role} | risk=${risk} | compliance=${compliance} | growth=${growth} | aiTrust=${aiTrust} | aiCost=${aiCost}`,
-          avatarStyleKey: avatarStyle,
-          fallbackAvatar: fallbackAvatarSrc,
-        }),
-      });
-      const data = await response.json();
-      if (!response.ok)      { setAvatarSrc(fallbackAvatarSrc); return; }
-      if (data.avatarUrl)    setAvatarSrc(data.avatarUrl);
-      else if (data.imageBase64) setAvatarSrc(`data:${data.mimeType || 'image/png'};base64,${data.imageBase64}`);
-      else                   setAvatarSrc(fallbackAvatarSrc);
-    } catch { setAvatarSrc(fallbackAvatarSrc); }
-    finally  { setIsGeneratingAvatar(false); }
-  }
+  
+  async function generateAvatar(base64Override?: string, mimeOverride?: string) {
+  const imageBase64 = base64Override ?? selectedImageBase64;
+  const mimeType    = mimeOverride   ?? selectedMimeType;
+  if (!imageBase64) return;
+  setIsGeneratingAvatar(true);
+  try {
+    const response = await fetch('/api/avatar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        imageBase64,
+        mimeType,
+        persona:        `${personaName} | role=${role} | risk=${risk} | compliance=${compliance} | growth=${growth} | aiTrust=${aiTrust} | aiCost=${aiCost}`,
+        avatarStyleKey: avatarStyle,
+        fallbackAvatar: fallbackAvatarSrc,
+      }),
+    });
+    const data = await response.json();
+    if (!response.ok)          { setAvatarSrc(fallbackAvatarSrc); return; }
+    if (data.avatarUrl)        setAvatarSrc(data.avatarUrl);
+    else if (data.imageBase64) setAvatarSrc(`data:${data.mimeType || 'image/png'};base64,${data.imageBase64}`);
+    else                       setAvatarSrc(fallbackAvatarSrc);
+  } catch { setAvatarSrc(fallbackAvatarSrc); }
+  finally  { setIsGeneratingAvatar(false); }
+}
 
   function completeSetup() {
     stopCamera();
     setAvatarSrc(avatarSrc || sourceImageSrc || fallbackAvatarSrc);
     setIsInitialized(true);
+    setChipBubble(randomFrom(CHIP_GREETINGS));
+    setChipVisible(true);
     setSetupOpen(false);
     setScoreStatus(`You are the ${role}. Read the scenario and make your call.`);
+  }
+
+  const CHIP_GREETINGS = [
+  'Ready to judge you! 😄',
+  'Let\'s see what you\'ve got!',
+  'I\'m watching… 👀',
+  'Choose wisely, human.',
+  'My circuits are tingling!',
+  'New scenario, new drama! 🎭',
+  'Don\'t panic. Or do. I\'ll watch.',
+  'I\'ve seen 1000 execs fail this one…',
+  'Ooh this one\'s spicy! 🌶️',
+  'My neural nets are warmed up!',
+  'Let\'s see if you\'re as smart as you look.',
+  'I\'ve already calculated all outcomes. 😏',
+  'No pressure. (It\'s pressure.)',
+  'The board is watching. So am I.',
+  'Time to separate the CFOs from the chaos.',
+];
+
+const CHIP_REACTIONS = [
+  'Interesting choice… 🤔',
+  'Bold move! Let\'s see…',
+  'Are you sure about that?',
+  'My risk sensors are beeping!',
+  'Hmm, a classic response!',
+  'Ooh, controversial! 😮',
+  'Playing it safe, huh?',
+  'That\'s one way to do it!',
+  'I did NOT see that coming.',
+  'The lawyers are going to love this. 👀',
+  'Noted. Eyebrow raised.',
+  'Your risk appetite is showing! 📈',
+  'Compliance officer has left the chat.',
+  'Classic. Absolutely classic.',
+  'I\'d have done the same. Maybe.',
+  'Interesting… my predecessor chose that too. It didn\'t end well.',
+  'Bold. Chaotic. Respect.',
+  'Your CFO is sweating right now.',
+  'The shareholders have entered the room.',
+  'Plot twist incoming! 🎬',
+  'My confidence in you just shifted 12 basis points.',
+  'I\'ll allow it. For now.',
+  'That\'s either genius or disaster. 50/50.',
+  'The press release writes itself.',
+];
+
+const CHIP_FAREWELL = [
+  'Consulting my circuits… 🧠',
+  'Calculating your fate…',
+  'Running the numbers… ⚡',
+  'Hmm let me think…',
+  'Cross-referencing 847 executive decisions…',
+  'Accessing the hall of fame. And shame.',
+  'Comparing you to 10,000 MBAs…',
+  'Initialising verdict engine… 🔄',
+  'Let me check with my legal team. Briefly.',
+  'Processing. This might sting.',
+  'Running scenario simulation… fingers crossed.',
+  'Consulting the oracle… 🔮',
+];
+
+const CORRECT_TEXTS  = ['Nailed it! 🎯', 'Right call!', 'Exactly! 💡', 'Your Twin agrees! ✅', 'Spot on! 🌟'];
+const PARTIAL_TEXTS  = ['Good instincts! 💛', 'Close enough!', 'Not bad at all!'];
+const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite…', 'Your Twin saw it differently'];
+
+  function randomFrom(arr: string[]) {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+  
+  function launchConfetti() {
+    const canvas = document.createElement('canvas');
+    canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9998';
+    document.body.appendChild(canvas);
+    const ctx = canvas.getContext('2d')!;
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const pieces = Array.from({ length: 120 }, () => ({
+      x:    Math.random() * canvas.width,
+      y:    Math.random() * canvas.height - canvas.height,
+      r:    Math.random() * 8 + 4,
+      d:    Math.random() * 60 + 20,
+      color: ['#f5c518','#1a7fd4','#4ade80','#f472b6','#fb923c'][Math.floor(Math.random()*5)],
+      tilt: Math.random() * 10 - 10,
+      tiltAngle: 0,
+      tiltSpeed: Math.random() * 0.1 + 0.05,
+    }));
+
+    let frame = 0;
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      pieces.forEach((p) => {
+        p.tiltAngle += p.tiltSpeed;
+        p.y += (Math.cos(frame * 0.01 + p.d) + 2.5) * 1.8;
+        p.x += Math.sin(frame * 0.01) * 1.2;
+        p.tilt = Math.sin(p.tiltAngle) * 12;
+        ctx.beginPath();
+        ctx.lineWidth = p.r / 2;
+        ctx.strokeStyle = p.color;
+        ctx.moveTo(p.x + p.tilt + p.r / 4, p.y);
+        ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r / 4);
+        ctx.stroke();
+      });
+      frame++;
+      if (frame < 160) requestAnimationFrame(draw);
+      else canvas.remove();
+    }
+    draw();
   }
 
   // ── Scoring ─────────────────────────────────────────────────────────────────
   async function scoreRound() {
     if (!isInitialized) return;
+    setChipBubble(randomFrom(CHIP_FAREWELL));
+    setTimeout(() => { setChipVisible(false); setChipBubble(null); }, 900);
     setIsScoring(true);
     setShowJudgingPanel(true);
     setScoringFailed(false);
@@ -434,6 +572,14 @@ export default function HomePage() {
       if (!response.ok) throw new Error(data?.error || 'Scoring failed.');
       setServerScore(data);
       setScoreStatus('Results ready — see how you compared.');
+
+      // Determine overlay type
+      const isCorrect  = action.toUpperCase() === scenario.correctOption.toUpperCase();
+      const overlayType = isCorrect ? 'correct' : 'wrong';
+
+      setVerdictOverlay(overlayType);
+      if (isCorrect) launchConfetti();
+      setTimeout(() => setVerdictOverlay(null), 2200);
     } catch (error) {
       console.error(error);
       setServerScore(null);
@@ -447,24 +593,28 @@ export default function HomePage() {
   // ── Next scenario ────────────────────────────────────────────────────────────
   function nextScenario() {
     if (!isInitialized) return;
-  setUsedIndices((prev) => {
-    const next = new Set(prev);
-    next.add(index);
-    if (next.size >= personaScenarios.length) next.clear();
-    return next;
-  });
-  setIndex((prev) => {
+
+    const nextUsed = new Set(usedIndices);
+    nextUsed.add(index);
+    if (nextUsed.size >= personaScenarios.length) {
+      nextUsed.clear();
+    }
+
     const pool = Array.from({ length: personaScenarios.length }, (_, i) => i)
-      .filter((i) => i !== prev && !usedIndices.has(i));
-    return pool.length > 0
+      .filter((i) => i !== index && !nextUsed.has(i));
+    const nextIndex = pool.length > 0
       ? pool[Math.floor(Math.random() * pool.length)]
       : Math.floor(Math.random() * personaScenarios.length);
-  });
+
+    setUsedIndices(nextUsed);
+    setIndex(nextIndex);
     setServerScore(null);
     setShowJudgingPanel(false);
     setScoringFailed(false);
     setShowResultsDialog(false);
     setAction('');
+    setChipBubble(randomFrom(CHIP_GREETINGS));
+    setChipVisible(true);
     setScoreStatus(`You are the ${role}. Read the scenario and make your call.`);
   }
 
@@ -537,12 +687,12 @@ export default function HomePage() {
               </div>
               <div className="active-avatar-meta">
                 <div className="active-avatar-name">{personaName}</div>
-                <div className="small">{role} · {selectedStyleLabel}</div>
+                <div className="small">{role}</div>
               </div>
             </div>
 
             {/* Sliders */}
-            <div className="sliders-header">Adjust your persona's priorities</div>
+            <div className="sliders-header">Your priorities <span className="sliders-hint-inline">· affects your score</span></div>
             <div className="sliders-section">
               {sliderConfig.map(({ key, label, min, max }) => (
                 <div className="slider-row" key={key}>
@@ -570,7 +720,7 @@ export default function HomePage() {
 
           {/* ── Center — Scenario ── */}
           <section className="card center-card">
-            <div className="scenario-content">
+            <div className="scenario-content" key={scenario.id}>
 
                 <div className="scenario-briefing">
                 {/* Persona-in-role banner */}
@@ -587,7 +737,17 @@ export default function HomePage() {
               </div>
 
               <div className="decision-zone">
-                <div className="decision-zone-label">What would you do as the {role}?</div>
+                <div className="decision-zone-header">
+                  <div className="decision-zone-label">What would you do as the {role}?</div>
+                  {isInitialized && chipVisible && (
+                    <div className={`avatar-chip-wrap${chipWiggle ? ' chip-wiggle' : ''}`}>
+                      {chipBubble && (
+                        <div className="avatar-chip-bubble" key={chipBubble}>{chipBubble}</div>
+                      )}
+                      <img src={resolvedAvatarSrc} alt="Twin" className="avatar-chip-img" />
+                    </div>
+                  )}
+                </div>
                   <div className="choice-grid">
                     {scenario.options.map((opt) => (
                       <button
@@ -600,11 +760,18 @@ export default function HomePage() {
                           } ${
                             showJudgingPanel && action === opt.code && opt.code !== scenario.correctOption ? 'wrong' : ''
                           }`}
-                        onClick={() => setAction(opt.code)}
+                        onClick={() => {
+                          setAction(opt.code);
+                          setChipBubble(randomFrom(CHIP_REACTIONS));
+                          setChipWiggle(true);
+                          window.setTimeout(() => {
+                            setChipWiggle(false);
+                          }, 700);
+                        }}
                         disabled={!isInitialized || showJudgingPanel}
                       >
                         <span className="choice-code">{opt.code}</span>
-                        <span className="choice-label">{opt.label}</span>
+                        <span className="choice-label">{opt.label}</span>                          
                       </button>
                     ))}
                   </div>
@@ -655,6 +822,17 @@ export default function HomePage() {
         </section>
       </main>
 
+      {/* ── Verdict overlay ── */}
+      {verdictOverlay && (
+        <div className={`verdict-overlay verdict-overlay--${verdictOverlay}`}>
+          <div className="verdict-overlay-text">
+            {verdictOverlay === 'correct'
+              ? randomFrom(CORRECT_TEXTS)
+              : randomFrom(WRONG_TEXTS)}
+          </div>
+        </div>
+      )}
+      
       {/* ── Setup modal ── */}
       {setupOpen && (
         <div className="setup-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="setup-title" onClick={(e) => { if (e.target === e.currentTarget) { stopCamera(); setSetupOpen(false); } }}>
@@ -692,13 +870,13 @@ export default function HomePage() {
                     </select>
                   </div>
                   <div className="setup-toolbar">
-                    <button className="icon-btn" type="button" onClick={cameraOpen ? stopCamera : startCamera} aria-label="Toggle camera">
+                    <button className="icon-btn" type="button" onClick={cameraOpen ? stopCamera : startCamera} aria-label="Toggle camera" disabled={isGeneratingAvatar}>
                       {cameraOpen ? <CameraOff size={15} /> : <Camera size={15} />}
                     </button>
-                    <button className="secondary-btn compact-btn" type="button" onClick={() => { cancelCountdown(); capturePhoto(); }} disabled={!videoReady}>
+                    <button className="secondary-btn compact-btn" type="button" onClick={() => { cancelCountdown(); capturePhoto(); }} disabled={!videoReady || isGeneratingAvatar}>
                       {cameraOpen && !videoReady ? 'Starting…' : 'Capture now'}
                     </button>
-                    <button className="primary-btn compact-btn" type="button" onClick={generateAvatar} disabled={!selectedImageBase64 || isGeneratingAvatar}>
+                    <button className="primary-btn compact-btn" type="button" onClick={() => generateAvatar()} disabled={!selectedImageBase64 || isGeneratingAvatar}>
                       {isGeneratingAvatar ? 'Generating…' : 'Generate avatar'}
                     </button>
                   </div>
@@ -866,7 +1044,9 @@ export default function HomePage() {
                   {/* ── 2. Coach narrative ── */}
                   <div className="results-section">
                     <div className="results-section-title">Coach's take</div>
-                    <p className="results-narrative">{activeScore.coachNarrative}</p>
+                    <p className="results-narrative">
+                      <Typewriter text={activeScore.coachNarrative} />
+                    </p>
                   </div>
 
                   {/* ── 3. Key gaps — only shown when gaps exist ── */}
