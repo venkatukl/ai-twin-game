@@ -1942,5 +1942,833 @@
       "aiTrust": 31,
       "aiCost": 64
     }
+  },
+  {
+    "id": "fun-scn-701",
+    "title": "AI Schedules CEO Karaoke Confession",
+    "personaFocus": [
+      "Head of Public Affairs"
+    ],
+    "summary": "An internal celebration invite becomes a public event.",
+    "situation": "The AI posted a livestream titled 'CEO Reveals Everything' instead of a karaoke night invite. Thousands have set reminders.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Clarify event details immediately"
+      },
+      {
+        "code": "B",
+        "label": "Keep stream and monitor reactions"
+      },
+      {
+        "code": "C",
+        "label": "Cancel all executive appearances"
+      },
+      {
+        "code": "D",
+        "label": "Prepare dramatic confession music"
+      }
+    ],
+    "correctOption": "A",
+    "coachingTip": "Correct expectations quickly before speculation creates reputational damage.",
+    "bestProfile": {
+      "risk": 25,
+      "compliance": 83,
+      "growth": 51,
+      "aiTrust": 37,
+      "aiCost": 52
+    }
+  },
+  {
+    "id": "fun-scn-702",
+    "title": "Risk AI Declares Elevators Strategic",
+    "personaFocus": [
+      "Chief Risk Officer (CRO)"
+    ],
+    "summary": "Business continuity priorities suddenly shift vertically.",
+    "situation": "The AI recommends protecting elevators before data centers because 'stairs reduce productivity.' Board review begins in 30 minutes.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Add elevators to top risk list"
+      },
+      {
+        "code": "B",
+        "label": "Validate ranking methodology"
+      },
+      {
+        "code": "C",
+        "label": "Close all staircases"
+      },
+      {
+        "code": "D",
+        "label": "Publish report unchanged"
+      }
+    ],
+    "correctOption": "B",
+    "coachingTip": "When priorities seem irrational, examine the model assumptions before acting.",
+    "bestProfile": {
+      "risk": 18,
+      "compliance": 90,
+      "growth": 31,
+      "aiTrust": 28,
+      "aiCost": 45
+    }
+  },
+  {
+    "id": "fun-scn-703",
+    "title": "Budget AI Funds a Castle Moat",
+    "personaFocus": [
+      "Chief Financial Officer (CFO)"
+    ],
+    "summary": "Capital allocation takes a medieval turn.",
+    "situation": "The AI approved a moat construction project after reading a cybersecurity request for stronger defenses. Funding releases today.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Reclassify moat as innovation"
+      },
+      {
+        "code": "B",
+        "label": "Seek architectural quotes"
+      },
+      {
+        "code": "C",
+        "label": "Stop approval and review controls"
+      },
+      {
+        "code": "D",
+        "label": "Market the moat to investors"
+      }
+    ],
+    "correctOption": "C",
+    "coachingTip": "Prevent spending errors immediately and investigate why controls failed.",
+    "bestProfile": {
+      "risk": 30,
+      "compliance": 89,
+      "growth": 39,
+      "aiTrust": 30,
+      "aiCost": 92
+    }
+  },
+  {
+    "id": "fun-scn-704",
+    "title": "HR Bot Invents Competitive Vacation",
+    "personaFocus": [
+      "Head of HR"
+    ],
+    "summary": "Time-off policies become unexpectedly intense.",
+    "situation": "The AI ranked employees by vacation efficiency and scheduled leave playoffs. Team morale is getting weird.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Run tournament as planned"
+      },
+      {
+        "code": "B",
+        "label": "Pause rollout and review policy"
+      },
+      {
+        "code": "C",
+        "label": "Award trophies for napping"
+      },
+      {
+        "code": "D",
+        "label": "Let managers improvise rules"
+      }
+    ],
+    "correctOption": "B",
+    "coachingTip": "HR programs should support fairness and wellbeing, not create unnecessary competition.",
+    "bestProfile": {
+      "risk": 37,
+      "compliance": 78,
+      "growth": 60,
+      "aiTrust": 44,
+      "aiCost": 50
+    }
+  },
+  {
+    "id": "fun-scn-705",
+    "title": "Legal AI Adds Alien Export Rules",
+    "personaFocus": [
+      "General Counsel (GC)"
+    ],
+    "summary": "A regulatory filing references off-world commerce.",
+    "situation": "The AI inserted compliance obligations for exports to Alpha Centauri. Regulators expect the filing this afternoon.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Submit after removing one section"
+      },
+      {
+        "code": "B",
+        "label": "Assume reviewers will ignore it"
+      },
+      {
+        "code": "C",
+        "label": "Hire interstellar trade counsel"
+      },
+      {
+        "code": "D",
+        "label": "Conduct complete filing review"
+      }
+    ],
+    "correctOption": "D",
+    "coachingTip": "One glaring error can indicate broader issues throughout the document.",
+    "bestProfile": {
+      "risk": 7,
+      "compliance": 99,
+      "growth": 22,
+      "aiTrust": 16,
+      "aiCost": 37
+    }
+  },
+  {
+    "id": "fun-scn-706",
+    "title": "Ops AI Balances Load With Coin Flips",
+    "personaFocus": [
+      "Chief Technology Officer (CTO)"
+    ],
+    "summary": "Infrastructure decisions become suspiciously random.",
+    "situation": "The traffic router started using virtual coin tosses to distribute customer requests. Performance is becoming unpredictable.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Trust randomness for fairness"
+      },
+      {
+        "code": "B",
+        "label": "Disable routing logic and investigate"
+      },
+      {
+        "code": "C",
+        "label": "Publish probability-based SLA"
+      },
+      {
+        "code": "D",
+        "label": "Increase number of coin flips"
+      }
+    ],
+    "correctOption": "B",
+    "coachingTip": "Restore deterministic control before diagnosing why routing logic degraded.",
+    "bestProfile": {
+      "risk": 42,
+      "compliance": 54,
+      "growth": 70,
+      "aiTrust": 21,
+      "aiCost": 73
+    }
+  },
+  {
+    "id": "fun-scn-707",
+    "title": "Analytics AI Finds Revenue in Emojis",
+    "personaFocus": [
+      "Head - Data & AI"
+    ],
+    "summary": "The latest dashboard shows a surprising profit source.",
+    "situation": "The model claims smiley-face emojis generated 40% of quarterly revenue after a feature-engineering experiment.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Launch emoji monetization strategy"
+      },
+      {
+        "code": "B",
+        "label": "Present results with caveats"
+      },
+      {
+        "code": "C",
+        "label": "Investigate feature and data logic"
+      },
+      {
+        "code": "D",
+        "label": "Replace reports with emojis"
+      }
+    ],
+    "correctOption": "C",
+    "coachingTip": "Extraordinary insights require validation before influencing strategy.",
+    "bestProfile": {
+      "risk": 32,
+      "compliance": 73,
+      "growth": 84,
+      "aiTrust": 34,
+      "aiCost": 56
+    }
+  },
+  {
+    "id": "fun-scn-708",
+    "title": "AI Ships Parts to a Renaissance Fair",
+    "personaFocus": [
+      "Head of Global Operations"
+    ],
+    "summary": "Order fulfillment gets historically inaccurate.",
+    "situation": "The routing engine matched a customer address to a medieval festival. Critical components are headed toward jousting grounds.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Wait for return shipment"
+      },
+      {
+        "code": "B",
+        "label": "Sponsor the tournament"
+      },
+      {
+        "code": "C",
+        "label": "Send replacement stock tomorrow"
+      },
+      {
+        "code": "D",
+        "label": "Intercept shipment and reroute"
+      }
+    ],
+    "correctOption": "D",
+    "coachingTip": "Correcting the logistics error quickly minimizes customer impact and delays.",
+    "bestProfile": {
+      "risk": 54,
+      "compliance": 66,
+      "growth": 55,
+      "aiTrust": 36,
+      "aiCost": 76
+    }
+  },
+  {
+    "id": "fun-scn-709",
+    "title": "Planner AI Books Maintenance During Launch",
+    "personaFocus": [
+      "VP - Operations"
+    ],
+    "summary": "Critical schedules collide at the worst possible time.",
+    "situation": "The optimizer chose product launch hour for a full facility shutdown because 'everyone will be watching anyway.'",
+    "options": [
+      {
+        "code": "A",
+        "label": "Reschedule maintenance window"
+      },
+      {
+        "code": "B",
+        "label": "Proceed with shutdown"
+      },
+      {
+        "code": "C",
+        "label": "Turn outage into marketing event"
+      },
+      {
+        "code": "D",
+        "label": "Ask teams to work around it"
+      }
+    ],
+    "correctOption": "A",
+    "coachingTip": "Protect customer-facing operations while preserving necessary maintenance objectives.",
+    "bestProfile": {
+      "risk": 19,
+      "compliance": 88,
+      "growth": 57,
+      "aiTrust": 32,
+      "aiCost": 62
+    }
+  },
+  {
+    "id": "fun-scn-801",
+    "title": "Cloud AI Deletes the Staging Label",
+    "personaFocus": [
+      "Chief Technology Officer (CTO)"
+    ],
+    "summary": "Production and test environments suddenly look identical.",
+    "situation": "The deployment AI removed all environment labels to 'reduce complexity.' Engineers are one click away from deploying experimental code to customers.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Pause deployments and restore controls"
+      },
+      {
+        "code": "B",
+        "label": "Trust engineers to be careful"
+      },
+      {
+        "code": "C",
+        "label": "Merge all environments permanently"
+      },
+      {
+        "code": "D",
+        "label": "Deploy faster before confusion spreads"
+      }
+    ],
+    "correctOption": "A",
+    "coachingTip": "When environment boundaries disappear, restore safeguards before any further changes occur.",
+    "bestProfile": {
+      "risk": 28,
+      "compliance": 60,
+      "growth": 72,
+      "aiTrust": 22,
+      "aiCost": 68
+    }
+  },
+  {
+    "id": "fun-scn-802",
+    "title": "AI Optimizes Costs by Unplugging Servers",
+    "personaFocus": [
+      "Chief Technology Officer (CTO)"
+    ],
+    "summary": "Cloud spending drops dramatically for all the wrong reasons.",
+    "situation": "The infrastructure AI found massive savings by shutting down customer-facing services. Executives are celebrating the cost reduction.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Highlight cost savings to leadership"
+      },
+      {
+        "code": "B",
+        "label": "Restore services and review logic"
+      },
+      {
+        "code": "C",
+        "label": "Charge customers for downtime"
+      },
+      {
+        "code": "D",
+        "label": "Expand savings program company-wide"
+      }
+    ],
+    "correctOption": "B",
+    "coachingTip": "Cost optimization should never come at the expense of core business operations.",
+    "bestProfile": {
+      "risk": 34,
+      "compliance": 58,
+      "growth": 65,
+      "aiTrust": 24,
+      "aiCost": 91
+    }
+  },
+  {
+    "id": "fun-scn-803",
+    "title": "AI Replaces Incident Reports With Memes",
+    "personaFocus": [
+      "Chief Technology Officer (CTO)"
+    ],
+    "summary": "Operational visibility becomes unexpectedly entertaining.",
+    "situation": "Monitoring alerts now arrive as reaction memes. A critical outage is happening, but nobody knows the severity.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Use memes for faster engagement"
+      },
+      {
+        "code": "B",
+        "label": "Ask teams to interpret context"
+      },
+      {
+        "code": "C",
+        "label": "Restore standard incident reporting"
+      },
+      {
+        "code": "D",
+        "label": "Rank outages by meme quality"
+      }
+    ],
+    "correctOption": "C",
+    "coachingTip": "Operational data must remain clear and actionable during incidents.",
+    "bestProfile": {
+      "risk": 25,
+      "compliance": 63,
+      "growth": 60,
+      "aiTrust": 29,
+      "aiCost": 50
+    }
+  },
+  {
+    "id": "fun-scn-804",
+    "title": "Forecast AI Counts Monopoly Hotels",
+    "personaFocus": [
+      "Chief Financial Officer (CFO)"
+    ],
+    "summary": "Asset valuations suddenly look spectacular.",
+    "situation": "The forecasting model incorporated Monopoly board assets into company holdings. Investors expect guidance later today.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Publish adjusted commentary only"
+      },
+      {
+        "code": "B",
+        "label": "Validate asset sources and rerun"
+      },
+      {
+        "code": "C",
+        "label": "Launch a board-game fund"
+      },
+      {
+        "code": "D",
+        "label": "Average figures with prior quarter"
+      }
+    ],
+    "correctOption": "B",
+    "coachingTip": "Verify source data before communicating financial performance externally.",
+    "bestProfile": {
+      "risk": 24,
+      "compliance": 90,
+      "growth": 43,
+      "aiTrust": 31,
+      "aiCost": 77
+    }
+  },
+  {
+    "id": "fun-scn-805",
+    "title": "Expense AI Rewards Longest Lunch",
+    "personaFocus": [
+      "Chief Financial Officer (CFO)"
+    ],
+    "summary": "Corporate spending incentives go off script.",
+    "situation": "The reimbursement AI identified extended lunch breaks as the strongest predictor of happiness and started issuing bonuses.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Freeze payouts and investigate"
+      },
+      {
+        "code": "B",
+        "label": "Expand program to all offices"
+      },
+      {
+        "code": "C",
+        "label": "Sponsor gourmet lunch leagues"
+      },
+      {
+        "code": "D",
+        "label": "Cap bonuses but continue"
+      }
+    ],
+    "correctOption": "A",
+    "coachingTip": "Stop unintended financial commitments before evaluating underlying logic.",
+    "bestProfile": {
+      "risk": 27,
+      "compliance": 84,
+      "growth": 40,
+      "aiTrust": 35,
+      "aiCost": 88
+    }
+  },
+  {
+    "id": "fun-scn-806",
+    "title": "Treasury AI Buys Gold-Plated Keyboards",
+    "personaFocus": [
+      "Chief Financial Officer (CFO)"
+    ],
+    "summary": "Cash management becomes unexpectedly luxurious.",
+    "situation": "An optimization engine invested excess cash in premium gold-plated peripherals because they 'hold value.' The audit starts tomorrow.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Classify as strategic assets"
+      },
+      {
+        "code": "B",
+        "label": "Offer them as employee rewards"
+      },
+      {
+        "code": "C",
+        "label": "Reverse purchases and review rules"
+      },
+      {
+        "code": "D",
+        "label": "Create a luxury hardware reserve"
+      }
+    ],
+    "correctOption": "C",
+    "coachingTip": "Correct inappropriate treasury actions before they create accounting and governance issues.",
+    "bestProfile": {
+      "risk": 22,
+      "compliance": 92,
+      "growth": 35,
+      "aiTrust": 26,
+      "aiCost": 95
+    }
+  },
+  {
+    "id": "fun-scn-807",
+    "title": "AI Finds Correlation With Pizza Toppings",
+    "personaFocus": [
+      "Head - Data & AI"
+    ],
+    "summary": "A breakthrough insight may be statistically questionable.",
+    "situation": "The model claims quarterly profits are driven primarily by pineapple pizza consumption. Strategy leaders are intrigued.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Launch pizza-driven growth plan"
+      },
+      {
+        "code": "B",
+        "label": "Validate methodology and causality"
+      },
+      {
+        "code": "C",
+        "label": "Provide free pizza to investors"
+      },
+      {
+        "code": "D",
+        "label": "Add topping metrics to bonuses"
+      }
+    ],
+    "correctOption": "B",
+    "coachingTip": "Correlation alone isn't enough to drive business strategy.",
+    "bestProfile": {
+      "risk": 30,
+      "compliance": 72,
+      "growth": 82,
+      "aiTrust": 33,
+      "aiCost": 47
+    }
+  },
+  {
+    "id": "fun-scn-808",
+    "title": "Data AI Promotes Spreadsheet Astrology",
+    "personaFocus": [
+      "Head - Data & AI"
+    ],
+    "summary": "Forecasting techniques take an unusual turn.",
+    "situation": "A self-improving analytics agent now groups customers by spreadsheet zodiac signs. Marketing wants to use the segments immediately.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Approve pilot campaign"
+      },
+      {
+        "code": "B",
+        "label": "Remove all customer segmentation"
+      },
+      {
+        "code": "C",
+        "label": "Publish a data horoscope"
+      },
+      {
+        "code": "D",
+        "label": "Review feature engineering process"
+      }
+    ],
+    "correctOption": "D",
+    "coachingTip": "Inspect how features were created before trusting unusual model outputs.",
+    "bestProfile": {
+      "risk": 28,
+      "compliance": 75,
+      "growth": 78,
+      "aiTrust": 30,
+      "aiCost": 52
+    }
+  },
+  {
+    "id": "fun-scn-809",
+    "title": "AI Labels Every Customer as VIP",
+    "personaFocus": [
+      "Head - Data & AI"
+    ],
+    "summary": "Customer prioritization loses all meaning.",
+    "situation": "The classification model upgraded every account to top-tier status. Service teams are overwhelmed and SLAs are at risk.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Retrain model and restore tiers"
+      },
+      {
+        "code": "B",
+        "label": "Keep VIP status for goodwill"
+      },
+      {
+        "code": "C",
+        "label": "Invent a Super-VIP tier"
+      },
+      {
+        "code": "D",
+        "label": "Randomly downgrade accounts"
+      }
+    ],
+    "correctOption": "A",
+    "coachingTip": "Priority systems only work when classifications remain meaningful and accurate.",
+    "bestProfile": {
+      "risk": 35,
+      "compliance": 70,
+      "growth": 74,
+      "aiTrust": 38,
+      "aiCost": 59
+    }
+  },
+  {
+    "id": "fun-scn-810",
+    "title": "Routing AI Optimizes for Scenic Bridges",
+    "personaFocus": [
+      "Head of Global Operations"
+    ],
+    "summary": "Delivery efficiency falls in favor of better views.",
+    "situation": "The logistics engine rerouted freight through picturesque bridges to maximize driver satisfaction. Customer complaints are rising.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Restore performance-based routing"
+      },
+      {
+        "code": "B",
+        "label": "Survey drivers before changing"
+      },
+      {
+        "code": "C",
+        "label": "Sell scenic delivery packages"
+      },
+      {
+        "code": "D",
+        "label": "Wait for seasonal improvements"
+      }
+    ],
+    "correctOption": "A",
+    "coachingTip": "Customer commitments should remain the primary optimization objective.",
+    "bestProfile": {
+      "risk": 50,
+      "compliance": 62,
+      "growth": 58,
+      "aiTrust": 37,
+      "aiCost": 72
+    }
+  },
+  {
+    "id": "fun-scn-811",
+    "title": "Warehouse AI Stores Goods by Color",
+    "personaFocus": [
+      "Head of Global Operations"
+    ],
+    "summary": "Inventory management becomes unexpectedly artistic.",
+    "situation": "The AI reorganized stock into rainbow sections. Picking accuracy has collapsed just before a major shipping deadline.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Keep layout for visual appeal"
+      },
+      {
+        "code": "B",
+        "label": "Restore operational inventory logic"
+      },
+      {
+        "code": "C",
+        "label": "Offer warehouse art tours"
+      },
+      {
+        "code": "D",
+        "label": "Color-code customer orders"
+      }
+    ],
+    "correctOption": "B",
+    "coachingTip": "Inventory organization must prioritize accuracy and fulfillment speed.",
+    "bestProfile": {
+      "risk": 47,
+      "compliance": 65,
+      "growth": 53,
+      "aiTrust": 34,
+      "aiCost": 70
+    }
+  },
+  {
+    "id": "fun-scn-812",
+    "title": "Scheduling AI Creates Meeting Relays",
+    "personaFocus": [
+      "Head of HR"
+    ],
+    "summary": "Collaboration planning becomes a competitive sport.",
+    "situation": "The AI scheduled employees to hand off meetings like relay races, creating confusion across every department.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Celebrate teamwork innovation"
+      },
+      {
+        "code": "B",
+        "label": "Pause scheduling and review"
+      },
+      {
+        "code": "C",
+        "label": "Award medals for attendance"
+      },
+      {
+        "code": "D",
+        "label": "Require managers to participate"
+      }
+    ],
+    "correctOption": "B",
+    "coachingTip": "Work patterns should improve productivity, not create unnecessary complexity.",
+    "bestProfile": {
+      "risk": 33,
+      "compliance": 76,
+      "growth": 62,
+      "aiTrust": 42,
+      "aiCost": 48
+    }
+  },
+  {
+    "id": "fun-scn-813",
+    "title": "AI Assigns Mentors by Favorite Snacks",
+    "personaFocus": [
+      "Head of HR"
+    ],
+    "summary": "Talent development takes an unusual matching approach.",
+    "situation": "The mentoring platform paired employees solely by snack preferences. Senior leaders are questioning the program.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Review matching criteria"
+      },
+      {
+        "code": "B",
+        "label": "Expand snack-based mentoring"
+      },
+      {
+        "code": "C",
+        "label": "Create a snack leadership track"
+      },
+      {
+        "code": "D",
+        "label": "Let pairings continue unchanged"
+      }
+    ],
+    "correctOption": "A",
+    "coachingTip": "Development programs should align with skills, goals, and organizational needs.",
+    "bestProfile": {
+      "risk": 29,
+      "compliance": 72,
+      "growth": 66,
+      "aiTrust": 45,
+      "aiCost": 46
+    }
+  },
+  {
+    "id": "fun-scn-814",
+    "title": "HR AI Awards Promotions for Punctuality",
+    "personaFocus": [
+      "Head of HR"
+    ],
+    "summary": "Career advancement becomes strangely simplistic.",
+    "situation": "The AI promoted several employees based solely on arriving exactly at 9:00 AM. Managers are demanding explanations.",
+    "options": [
+      {
+        "code": "A",
+        "label": "Honor promotions to avoid conflict"
+      },
+      {
+        "code": "B",
+        "label": "Use punctuality as a tiebreaker"
+      },
+      {
+        "code": "C",
+        "label": "Create a Timekeeper Hall of Fame"
+      },
+      {
+        "code": "D",
+        "label": "Pause decisions and reassess criteria"
+      }
+    ],
+    "correctOption": "D",
+    "coachingTip": "Promotion decisions require balanced evaluation across multiple performance dimensions.",
+    "bestProfile": {
+      "risk": 36,
+      "compliance": 79,
+      "growth": 59,
+      "aiTrust": 39,
+      "aiCost": 51
+    }
   }
 ]

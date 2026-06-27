@@ -4,6 +4,8 @@ import { Bot, Camera, CameraOff, LoaderCircle, Pencil, Sparkles } from 'lucide-r
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import scenarios from '@/data/scenarios.json';
 
+const GESTURE_ENABLED = process.env.NEXT_PUBLIC_GESTURE_ENABLED === 'true';
+
 type Scenario = {
   id: string;
   title: string;
@@ -281,6 +283,10 @@ function LoadingQuip({ quips = LOADING_QUIPS }: { quips?: string[] }) {
   );
 }
 
+// Module-level — persists across camera start/stop cycles
+let _gestureRecognizer: any = null;
+let _mediaPipeLoading = false;
+
 // ── Main component ────────────────────────────────────────────────────────────
 export default function HomePage() {
   const [role,       setRole]       = useState('Head of Public Affairs');
@@ -320,6 +326,37 @@ export default function HomePage() {
   const [verdictOverlay, setVerdictOverlay] = useState<{ type: 'correct' | 'wrong'; text: string } | null>(null);
   const [briefingActive, setBriefingActive] = useState(false);
   const [holoActive, setHoloActive] = useState(false);
+
+  // ── Gesture control ──────────────────────────────────────────────────────────
+  const gestureVideoRef   = useRef<HTMLVideoElement | null>(null);
+  const gestureCanvasRef  = useRef<HTMLCanvasElement | null>(null);
+  const gestureStreamRef  = useRef<MediaStream | null>(null);
+  const gestureRafRef     = useRef<number | null>(null);
+  const gestureRecRef     = useRef<any>(null);
+  const btnEditRef        = useRef<HTMLButtonElement | null>(null);
+  const btnNextRef        = useRef<HTMLButtonElement | null>(null);
+  const btnSubmitRef      = useRef<HTMLButtonElement | null>(null);
+  const optionRefs        = useRef<(HTMLButtonElement | null)[]>([null, null, null, null]);
+
+  const [gestureReady,    setGestureReady]    = useState(false);
+  const [gestureError,    setGestureError]    = useState<string | null>(null);
+  const [gestureActive,   setGestureActive]   = useState(false);
+  const [activeTarget,    setActiveTarget]    = useState<string | null>(null);  
+  const [dwellFiring, setDwellFiring] = useState<string | null>(null);
+  const [gesturePaused, setGesturePaused] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return sessionStorage.getItem('gesture-paused') === 'true';
+  });
+  const [gestureCursor, setGestureCursor] = useState<{ x: number; y: number } | null>(null);
+  const [dwellProgress, setDwellProgress] = useState(0);
+  const smoothX       = useRef(0);
+  const smoothY       = useRef(0);
+  const lastClickTime = useRef(0);
+  const hoverFrames   = useRef<Record<string, number>>({});
+  const dwellTarget   = useRef<string | null>(null);
+  const dwellStart    = useRef<number | null>(null);
+  const dwellGrace    = useRef<ReturnType<typeof setTimeout> | null>(null);  
+  const DWELL_MS      = 2000;
   
   const FALLBACK_POOL = [
   '/avatars/fallback-1.png',
@@ -390,6 +427,21 @@ export default function HomePage() {
       });
     }
   }, [setupOpen]);
+
+  useEffect(() => {
+    if (!GESTURE_ENABLED) return;
+    if (!isInitialized || showResultsDialog || setupOpen || gesturePaused) {
+      stopGestureCamera();
+      return;
+    }
+    startGestureCamera();
+    return () => stopGestureCamera();
+  }, [GESTURE_ENABLED, isInitialized, showResultsDialog, setupOpen, gesturePaused]);
+
+  useEffect(() => {
+    if (!GESTURE_ENABLED) return;
+    sessionStorage.setItem('gesture-paused', String(gesturePaused));
+  }, [gesturePaused]);
 
   // ── Camera ──────────────────────────────────────────────────────────────────
   function stopCamera() {
@@ -542,6 +594,8 @@ export default function HomePage() {
     setChipVisible(true);
     setSetupOpen(false);
     setScoreStatus(`You are the ${role}. Read the scenario and make your call.`);
+    sessionStorage.removeItem('gesture-paused');
+    setGesturePaused(false);
   }
 
   const BRIEFING_TEXTS = [
@@ -669,6 +723,252 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
   function triggerHolo() {
     setHoloActive(true);
     setTimeout(() => setHoloActive(false), 1200);
+  }
+
+  // ── Gesture camera ───────────────────────────────────────────────────────────
+  async function startGestureCamera() {
+    if (!GESTURE_ENABLED) return;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: { ideal: 320 }, height: { ideal: 240 } },
+        audio: false,
+      });
+      gestureStreamRef.current = stream;
+      if (gestureVideoRef.current) {
+        gestureVideoRef.current.srcObject = stream;
+        gestureVideoRef.current.play();
+      }
+      await initMediaPipe();
+      setGestureActive(true);
+      setGestureError(null);
+    } catch (err) {
+      setGestureError('Camera unavailable');
+      console.warn('Gesture camera error:', err);
+    }
+  }
+
+  function stopGestureCamera() {
+    if (gestureRafRef.current) { cancelAnimationFrame(gestureRafRef.current); gestureRafRef.current = null; }
+    if (dwellGrace.current) { clearTimeout(dwellGrace.current); dwellGrace.current = null; }
+    gestureStreamRef.current?.getTracks().forEach(t => t.stop());
+    gestureStreamRef.current = null;
+    if (gestureVideoRef.current) { gestureVideoRef.current.srcObject = null; }
+    setGestureActive(false);
+    setActiveTarget(null);
+    setDwellProgress(0);
+    dwellTarget.current = null;
+    dwellStart.current  = null;
+  }
+
+  async function initMediaPipe() {
+    // Already loaded — reuse
+    if (_gestureRecognizer) {
+      gestureRecRef.current = _gestureRecognizer;
+      setGestureReady(true);
+      requestGestureFrame();
+      return;
+    }
+    // Already loading — wait
+    if (_mediaPipeLoading) return;
+    _mediaPipeLoading = true;
+
+    try {
+      const vision = await import('@mediapipe/tasks-vision');
+      const { GestureRecognizer, FilesetResolver } = vision;
+      const filesetResolver = await FilesetResolver.forVisionTasks(
+        'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm'
+      );
+      const recognizer = await GestureRecognizer.createFromOptions(filesetResolver, {
+        baseOptions: {
+          modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task',
+          delegate: 'GPU',
+        },
+        runningMode: 'VIDEO',
+        numHands: 1,
+      });
+      _gestureRecognizer = recognizer;
+      gestureRecRef.current = recognizer;
+      setGestureReady(true);
+      requestGestureFrame();
+    } catch (err) {
+      setGestureError('MediaPipe failed to load');
+      console.error('MediaPipe init error:', err);
+    } finally {
+      _mediaPipeLoading = false;
+    }
+  }
+
+  function requestGestureFrame() {
+    gestureRafRef.current = requestAnimationFrame(processGestureFrame);
+  }
+
+  function processGestureFrame() {
+    if (!gestureStreamRef.current) return;
+    const video  = gestureVideoRef.current;
+    const canvas = gestureCanvasRef.current;
+    const rec    = gestureRecRef.current;
+    if (!video || !canvas || !rec || video.readyState < 2) {
+      requestGestureFrame(); return;
+    }
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) { requestGestureFrame(); return; }
+
+    canvas.width  = video.videoWidth  || 320;
+    canvas.height = video.videoHeight || 240;
+
+    ctx.save();
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    ctx.restore();
+
+    let results: any;
+    try { results = rec.recognizeForVideo(video, performance.now()); }
+    catch { requestGestureFrame(); return; }
+
+    if (results?.landmarks?.length > 0) {
+      const hand     = results.landmarks[0];
+      const indexTip = hand[8];
+
+      // Draw index finger dot on canvas
+      const sx = (1 - indexTip.x) * canvas.width;
+      const sy = indexTip.y * canvas.height;
+      ctx.beginPath();
+      ctx.arc(sx, sy, 8, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(245,197,24,0.9)';
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Map to screen coordinates with smoothing
+      const SMOOTH  = 0.2;
+      const screenX = (1 - indexTip.x) * window.innerWidth;
+      const screenY = indexTip.y * window.innerHeight;
+      smoothX.current = smoothX.current * (1 - SMOOTH) + screenX * SMOOTH;
+      smoothY.current = smoothY.current * (1 - SMOOTH) + screenY * SMOOTH;
+      setGestureCursor({ x: smoothX.current, y: smoothY.current });
+
+      // Hit test buttons
+      const buttons = [
+        { key: 'edit',   ref: btnEditRef },
+        { key: 'next',   ref: btnNextRef },
+        { key: 'submit', ref: btnSubmitRef },
+        ...scenario.options.map((opt, i) => ({
+          key: `option-${opt.code}`,
+          ref: { current: optionRefs.current[i] },
+        })),
+      ];
+
+      let hit: string | null = null;
+      for (const { key, ref } of buttons) {
+        if (!ref.current || ref.current.disabled) continue;
+        const r = ref.current.getBoundingClientRect();
+        if (
+          smoothX.current >= r.left && smoothX.current <= r.right &&
+          smoothY.current >= r.top  && smoothY.current <= r.bottom
+        ) { hit = key; break; }
+      }
+
+      // Stable hover — require 4 consistent frames before committing
+      const hf = hoverFrames.current;
+      if (hit) {
+        hf[hit] = (hf[hit] ?? 0) + 1;
+        Object.keys(hf).forEach(k => { if (k !== hit) hf[k] = 0; });
+        if (hf[hit] >= 4) setActiveTarget(hit);
+      } else {
+        Object.keys(hf).forEach(k => { hf[k] = 0; });
+      }
+
+      // ── Dwell click ──────────────────────────────────────────────────────────
+      const now = Date.now();
+
+      if (hit) {
+        // Cancel any pending grace reset
+        if (dwellGrace.current) {
+          clearTimeout(dwellGrace.current);
+          dwellGrace.current = null;
+        }
+
+        if (dwellTarget.current !== hit) {
+          // Moved to a new button — reset dwell timer
+          dwellTarget.current = hit;
+          dwellStart.current  = now;
+          setDwellProgress(0);
+        } else {
+          // Same button — accumulate dwell time regardless of minor jitter
+          const elapsed  = now - (dwellStart.current ?? now);
+          const progress = Math.min(100, (elapsed / DWELL_MS) * 100);
+          setDwellProgress(progress);
+
+          if (progress >= 100) {
+            const cooldownOk = now - lastClickTime.current > 1500;
+            if (cooldownOk) {
+              lastClickTime.current = now;
+              dwellStart.current = now + DWELL_MS;
+              setDwellProgress(0);
+
+              const btn = buttons.find(b => b.key === hit)?.ref.current;
+              const label = hit === 'edit'   ? '✓ Edit profile'
+                          : hit === 'next'   ? '✓ Next scenario'
+                          : hit === 'submit' ? '✓ Submitting…'
+                          : hit?.startsWith('option-')
+                            ? `✓ Option ${hit.replace('option-', '')} selected`
+                            : '✓ Activating…';
+
+              setDwellFiring(label);
+              setTimeout(() => {
+                setDwellFiring(null);
+                btn?.click();
+              }, 600);
+            }
+          }
+        }
+      } else {
+        // Finger left all buttons — grace period before resetting
+        // This prevents micro-jitter at button edges from resetting progress
+        if (dwellTarget.current && !dwellGrace.current) {
+          dwellGrace.current = setTimeout(() => {
+            dwellTarget.current = null;
+            dwellStart.current  = null;
+            setDwellProgress(0);
+            dwellGrace.current  = null;
+            setActiveTarget(null);
+          }, 300);
+        }
+      }
+
+      // Draw hand skeleton
+      const connections = [
+        [0,1],[1,2],[2,3],[3,4],
+        [0,5],[5,6],[6,7],[7,8],
+        [0,9],[9,10],[10,11],[11,12],
+        [0,13],[13,14],[14,15],[15,16],
+        [0,17],[17,18],[18,19],[19,20],
+        [5,9],[9,13],[13,17],
+      ];
+      ctx.strokeStyle = 'rgba(26,127,212,0.5)';
+      ctx.lineWidth = 1.5;
+      for (const [a, b] of connections) {
+        const pa = hand[a], pb = hand[b];
+        ctx.beginPath();
+        ctx.moveTo((1 - pa.x) * canvas.width, pa.y * canvas.height);
+        ctx.lineTo((1 - pb.x) * canvas.width, pb.y * canvas.height);
+        ctx.stroke();
+      }
+
+    } else {
+      // No hand detected
+      if (dwellGrace.current) { clearTimeout(dwellGrace.current); dwellGrace.current = null; }
+      dwellTarget.current = null;
+      dwellStart.current  = null;
+      setDwellProgress(0);
+      setActiveTarget(null);
+      setGestureCursor(null);
+    }
+
+    requestGestureFrame();
   }
 
   // ── Scoring ─────────────────────────────────────────────────────────────────
@@ -891,9 +1191,10 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
                   )}
                 </div>
                   <div className="choice-grid">
-                    {scenario.options.map((opt) => (
+                    {scenario.options.map((opt, i) => (
                       <button
                         key={opt.code}
+                        ref={el => { optionRefs.current[i] = el; }}
                         type="button"
                         className={`choice ${
                           action === opt.code ? 'active' : ''
@@ -931,7 +1232,8 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
               <div className="footer-note">{scoreStatus}</div>
               <div className="scenario-actions">
                 <button
-                  className="ghost-btn"
+                  className={`ghost-btn ${activeTarget === 'edit' ? 'gesture-target-active' : ''}`}
+                  ref={btnEditRef}
                   type="button"
                   onClick={() => setSetupOpen(true)}
                   title="Edit your AI Twin profile"
@@ -939,7 +1241,8 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
                   ✎ Edit profile
                 </button>
                 <button
-                  className="secondary-btn"
+                  className={`secondary-btn ${activeTarget === 'next' ? 'gesture-target-active' : ''}`}
+                  ref={btnNextRef}
                   type="button"
                   onClick={nextScenario}
                   disabled={!isInitialized || isScoring }
@@ -954,7 +1257,8 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
                   </button>
                 ) : (
                   <button
-                    className="primary-btn"
+                    className={`primary-btn ${activeTarget === 'submit' ? 'gesture-target-active' : ''}`}
+                    ref={btnSubmitRef}
                     type="button"
                     onClick={scoreRound}
                     disabled={!isInitialized || isScoring || !action }
@@ -987,6 +1291,112 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
             <span className="briefing-stamp-dot" />
               {randomFrom(BRIEFING_TEXTS)}
             <span className="briefing-stamp-dot" />
+          </div>
+        </div>
+      )}
+
+      {/* ── Dwell firing overlay ── */}
+      {dwellFiring && (
+        <div className="dwell-firing-overlay">
+          <div className="dwell-firing-text">{dwellFiring}</div>
+        </div>
+      )}
+
+      {/* ── Gesture screen cursor ── */}
+      {GESTURE_ENABLED && gestureActive && !gesturePaused && gestureCursor && (
+        <div
+          className={`gesture-cursor ${activeTarget ? 'gesture-cursor--hover' : ''}`}
+          style={{ left: gestureCursor.x, top: gestureCursor.y }}
+        >
+          <div className="gesture-cursor__ring" />
+          <div className="gesture-cursor__dot" />
+          {activeTarget && (
+            <div className="gesture-cursor__label">
+              {activeTarget === 'edit'    ? 'Edit profile'    :
+              activeTarget === 'next'    ? 'Next scenario'   :
+              activeTarget === 'submit'  ? 'Hold to submit'  :
+              activeTarget?.startsWith('option-')
+                ? `Option ${activeTarget.replace('option-', '')}`
+                : ''}
+            </div>
+          )}
+          {activeTarget && dwellProgress > 0 && (
+            <svg className="gesture-cursor__dwell" viewBox="0 0 44 44">
+              {/* Background track */}
+              <circle
+                cx="22" cy="22" r="20"
+                fill="none"
+                stroke="rgba(245,197,24,0.15)"
+                strokeWidth="3"
+              />
+              {/* Glowing fill arc */}
+              <circle
+                cx="22" cy="22" r="20"
+                fill="none"
+                stroke="rgba(245,197,24,1)"
+                strokeWidth="3.5"
+                strokeDasharray={`${2 * Math.PI * 20}`}
+                strokeDashoffset={`${2 * Math.PI * 20 * (1 - dwellProgress / 100)}`}
+                strokeLinecap="round"
+                transform="rotate(-90 22 22)"
+                style={{
+                  filter: 'drop-shadow(0 0 4px rgba(245,197,24,0.9))',
+                  transition: 'stroke-dashoffset 0.05s linear',
+                }}
+              />
+              {/* Center fill indicator — grows as progress increases */}
+              <circle
+                cx="22" cy="22"
+                r={`${(dwellProgress / 100) * 8}`}
+                fill="rgba(245,197,24,0.6)"
+              />
+            </svg>
+          )}
+        </div>
+      )}
+
+      {/* ── Gesture control panel ── */}
+      {GESTURE_ENABLED && isInitialized && !setupOpen && (
+        <div className="gesture-panel">
+          <div className="gesture-panel__header">
+            <span className="gesture-panel__title">👋 Gesture Control</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span className={`gesture-panel__status ${
+                gesturePaused ? 'is-paused' :
+                gestureReady  ? 'is-ready'  : 'is-waiting'
+              }`}>
+                {gesturePaused ? '⏸ Paused' : gestureReady ? '● Ready' : gestureError ? '✕ Error' : '◌ Loading…'}
+              </span>
+              <button
+                className="gesture-toggle-btn"
+                type="button"
+                onClick={() => setGesturePaused(p => !p)}
+                title={gesturePaused ? 'Enable gesture control' : 'Disable gesture control'}
+              >
+                {gesturePaused ? '▶' : '⏸'}
+              </button>
+            </div>
+          </div>
+          <div className="gesture-panel__camera">
+            <video
+              ref={gestureVideoRef}
+              className="gesture-panel__video"
+              autoPlay playsInline muted
+            />
+            <canvas ref={gestureCanvasRef} className="gesture-panel__canvas" />
+          </div>
+          <div className="gesture-panel__meta">
+            {gestureError
+              ? <span className="gesture-panel__error">⚠ {gestureError}</span>
+              : <span className="gesture-panel__hint">
+                  Point at a button · Hold still 2s to activate
+                </span>
+            }
+            {activeTarget && (
+              <span style={{ color: '#f7c948', fontWeight: 700 }}>
+                → {activeTarget === 'edit' ? 'Edit profile' : activeTarget === 'next' ? 'Next scenario' : 'Submit'}
+              </span>
+            )}
           </div>
         </div>
       )}
@@ -1229,7 +1639,7 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
             {/* Footer */}
             <div className="results-modal-footer">
                <button
-                className="ghost-btn"
+                className={`ghost-btn ${activeTarget === 'edit' ? 'gesture-target-active' : ''}`}
                 type="button"
                 onClick={() => { setShowResultsDialog(false); setSetupOpen(true); }}
               >
