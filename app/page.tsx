@@ -1,6 +1,6 @@
 'use client';
 
-import { Camera, CameraOff, LoaderCircle, Pencil, Sparkles } from 'lucide-react';
+import { Bot, Camera, CameraOff, LoaderCircle, Pencil, Sparkles } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import scenarios from '@/data/scenarios.json';
 
@@ -122,7 +122,7 @@ function scoreScenario(
 
   return {
     overall,
-    verdict: overall >= 82 ? 'Strong balance' : overall >= 62 ? 'Promising but exposed' : 'Needs tighter controls',
+    verdict: aScore === 50 ? 'Strong balance' : 'Needs tighter controls',
     coachNarrative: `You chose "${chosenLabel}". The right call was "${correctLabel}". ${scenario.coachingTip ?? ''}`.trim(),
     idealAction: correctLabel,
     gaps: topGaps(profile, bp, idealAiCost),
@@ -182,6 +182,105 @@ function Typewriter({ text }: { text: string }) {
   return <>{displayed}</>;
 }
 
+const VERDICT_OPTIONS = [
+  'Needs tighter controls',
+  'Promising but exposed',
+  'Strong balance',
+];
+
+function VerdictSlotMachine({ final }: { final: string }) {
+  const [displayed, setDisplayed]   = useState(VERDICT_OPTIONS[0]);
+  const [spinning,  setSpinning]    = useState(true);
+  const [settled,   setSettled]     = useState(false);
+
+  useEffect(() => {
+    setDisplayed(VERDICT_OPTIONS[0]);
+    setSpinning(true);
+    setSettled(false);
+
+    let cycles = 0;
+    const totalCycles = 10;
+    // Start fast, slow down toward the end
+    const delays = [60, 60, 80, 80, 100, 120, 150, 180, 220, 280];
+
+    function spin(i: number) {
+      if (i >= totalCycles) {
+        setDisplayed(final);
+        setSpinning(false);
+        setTimeout(() => setSettled(true), 100);
+        return;
+      }
+      setDisplayed(VERDICT_OPTIONS[i % VERDICT_OPTIONS.length]);
+      setTimeout(() => spin(i + 1), delays[i] ?? 280);
+    }
+
+    // Short delay before starting — let modal appear first
+    setTimeout(() => spin(0), 400);
+  }, [final]);
+
+  return (
+    <span className={`verdict-slot ${spinning ? 'slot-spinning' : ''} ${settled ? 'slot-settled' : ''}`} data-verdict={settled ? final : undefined} >
+      {displayed}
+    </span>
+  );
+}
+
+const AVATAR_QUIPS = [
+  'Studying your best angles… 📐',
+  'Adding cartoon magic… ✨',
+  'Exaggerating your features… lovingly… 🎨',
+  'Consulting Pixar… unofficially… 🎬',
+  'Making you look important… 💼',
+  'Rounding your edges… literally… 🔵',
+  'Adding executive gravitas… 👔',
+  'Your caricature is cooking… 🍳',
+  'Turning pixels into personality…',
+  'Making you 10% more photogenic… 📸',
+  'AI artist at work… do not disturb… 🖌️',
+  'Asking your face to hold still…',
+];
+
+const LOADING_QUIPS = [
+  'Consulting 10,000 MBAs… 🧠',
+  'Checking if this is legal… 👀',
+  'Running risk simulations… ⚡',
+  'Asking your Twin nicely…',
+  'Cross-referencing bad decisions… 📚',
+  'Calculating career implications… 😅',
+  'Polling the board… virtually… 🏛️',
+  'Searching for precedent… 🔍',
+  'Your Twin is thinking hard…',
+  'Comparing to 847 real executives…',
+  'Dusting off the risk playbook… 📖',
+  'Checking LinkedIn for inspiration… 💼',
+];
+
+function LoadingQuip({ quips = LOADING_QUIPS }: { quips?: string[] }) {
+  const [idx, setIdx] = useState(0);
+  const [fade, setFade] = useState(true);
+
+  useEffect(() => {
+    setIdx(0);
+    const interval = setInterval(() => {
+      setFade(false);
+      setTimeout(() => {
+        setIdx((i) => (i + 1) % quips.length);
+        setFade(true);
+      }, 200);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [quips]);
+
+  return (
+    <div
+      className="loading-quip"
+      style={{ opacity: fade ? 1 : 0, transition: 'opacity 0.2s ease' }}
+    >
+      {quips[idx]}
+    </div>
+  );
+}
+
 // ── Main component ────────────────────────────────────────────────────────────
 export default function HomePage() {
   const [role,       setRole]       = useState('Head of Public Affairs');
@@ -218,8 +317,9 @@ export default function HomePage() {
   const [chipBubble, setChipBubble] = useState<string | null>(null);
   const [chipVisible, setChipVisible] = useState(false);
   const [chipWiggle,  setChipWiggle]  = useState(false);
-  const [verdictOverlay, setVerdictOverlay] = useState<'correct' | 'wrong' | 'partial' | null>(null);
- 
+  const [verdictOverlay, setVerdictOverlay] = useState<{ type: 'correct' | 'wrong'; text: string } | null>(null);
+  const [briefingActive, setBriefingActive] = useState(false);
+  const [holoActive, setHoloActive] = useState(false);
   
   const FALLBACK_POOL = [
   '/avatars/fallback-1.png',
@@ -437,11 +537,20 @@ export default function HomePage() {
     stopCamera();
     setAvatarSrc(avatarSrc || sourceImageSrc || fallbackAvatarSrc);
     setIsInitialized(true);
+    triggerBriefing();
     setChipBubble(randomFrom(CHIP_GREETINGS));
     setChipVisible(true);
     setSetupOpen(false);
     setScoreStatus(`You are the ${role}. Read the scenario and make your call.`);
   }
+
+  const BRIEFING_TEXTS = [
+    '⚡ INCOMING CRISIS',
+    '🤖 AI CHAOS DETECTED',
+    '⚠️ DECISION REQUIRED',
+    '📡 YOUR TWIN IS WATCHING',
+    '🔴 SITUATION ALERT',
+  ];
 
   const CHIP_GREETINGS = [
   'Ready to judge you! 😄',
@@ -552,16 +661,39 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
     draw();
   }
 
+  function triggerBriefing() {
+    setBriefingActive(true);
+    setTimeout(() => setBriefingActive(false), 1400);
+  }
+
+  function triggerHolo() {
+    setHoloActive(true);
+    setTimeout(() => setHoloActive(false), 1200);
+  }
+
   // ── Scoring ─────────────────────────────────────────────────────────────────
   async function scoreRound() {
     if (!isInitialized) return;
+
+    const scoringStartTime = Date.now();
+    const isCorrect = action.toUpperCase() === scenario.correctOption.toUpperCase();
+    const overlayText = isCorrect ? randomFrom(CORRECT_TEXTS) : randomFrom(WRONG_TEXTS);
+
+    // Step 1 (0ms) — holo rings + farewell bubble
     setChipBubble(randomFrom(CHIP_FAREWELL));
-    setTimeout(() => { setChipVisible(false); setChipBubble(null); }, 900);
+    triggerHolo();
+
+    // Step 2 (1200ms) — hide chip, open modal with spinner
+    setTimeout(() => {
+      setChipVisible(false);
+      setChipBubble(null);
+      setShowResultsDialog(true);
+    }, 1200);
+
     setIsScoring(true);
-    setShowJudgingPanel(true);
     setScoringFailed(false);
-    setShowResultsDialog(true); // open dialog immediately — shows spinner while loading
     setScoreStatus('Judging your decision…');
+
     try {
       const response = await fetch('/api/score', {
         method: 'POST',
@@ -573,13 +705,15 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
       setServerScore(data);
       setScoreStatus('Results ready — see how you compared.');
 
-      // Determine overlay type
-      const isCorrect  = action.toUpperCase() === scenario.correctOption.toUpperCase();
-      const overlayType = isCorrect ? 'correct' : 'wrong';
+      // Fire overlay after modal has been visible minimum 1.5s
+      const elapsed = Date.now() - scoringStartTime;
+      const delay = Math.max(1500, 2600 - elapsed);
+      setTimeout(() => {
+        setVerdictOverlay({ type: isCorrect ? 'correct' : 'wrong', text: overlayText });
+        setTimeout(() => setVerdictOverlay(null), 2200);
+        if (isCorrect) launchConfetti();
+      }, delay);
 
-      setVerdictOverlay(overlayType);
-      if (isCorrect) launchConfetti();
-      setTimeout(() => setVerdictOverlay(null), 2200);
     } catch (error) {
       console.error(error);
       setServerScore(null);
@@ -615,6 +749,7 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
     setAction('');
     setChipBubble(randomFrom(CHIP_GREETINGS));
     setChipVisible(true);
+    triggerBriefing();
     setScoreStatus(`You are the ${role}. Read the scenario and make your call.`);
   }
 
@@ -740,11 +875,18 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
                 <div className="decision-zone-header">
                   <div className="decision-zone-label">What would you do as the {role}?</div>
                   {isInitialized && chipVisible && (
-                    <div className={`avatar-chip-wrap${chipWiggle ? ' chip-wiggle' : ''}`}>
+                    <div className={`avatar-chip-wrap${chipWiggle ? ' chip-wiggle' : ''}${holoActive ? ' chip-holo' : ''}`}>
                       {chipBubble && (
                         <div className="avatar-chip-bubble" key={chipBubble}>{chipBubble}</div>
                       )}
                       <img src={resolvedAvatarSrc} alt="Twin" className="avatar-chip-img" />
+                      {holoActive && (
+                        <div className="chip-holo-rings">
+                          <span className="holo-ring holo-ring-1" />
+                          <span className="holo-ring holo-ring-2" />
+                          <span className="holo-ring holo-ring-3" />
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -754,12 +896,12 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
                         key={opt.code}
                         type="button"
                         className={`choice ${
-                            action === opt.code ? 'active' : ''
-                          } ${
-                            showJudgingPanel && opt.code === scenario.correctOption ? 'correct' : ''
-                          } ${
-                            showJudgingPanel && action === opt.code && opt.code !== scenario.correctOption ? 'wrong' : ''
-                          }`}
+                          action === opt.code ? 'active' : ''
+                        } ${
+                          showJudgingPanel && opt.code === scenario.correctOption ? 'correct' : ''
+                        } ${
+                          showJudgingPanel && action === opt.code && opt.code !== scenario.correctOption ? 'wrong' : ''
+                        }`}
                         onClick={() => {
                           setAction(opt.code);
                           setChipBubble(randomFrom(CHIP_REACTIONS));
@@ -768,10 +910,16 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
                             setChipWiggle(false);
                           }, 700);
                         }}
-                        disabled={!isInitialized || showJudgingPanel}
+                        disabled={!isInitialized || showJudgingPanel || briefingActive}
                       >
                         <span className="choice-code">{opt.code}</span>
-                        <span className="choice-label">{opt.label}</span>                          
+                        <span className="choice-label">{opt.label}</span>
+                        {showJudgingPanel && opt.code === scenario.correctOption && (
+                          <span className="choice-result-icon choice-correct-icon">✓</span>
+                        )}
+                        {showJudgingPanel && action === opt.code && opt.code !== scenario.correctOption && (
+                          <span className="choice-result-icon choice-wrong-icon">✗</span>
+                        )}                 
                       </button>
                     ))}
                   </div>
@@ -824,11 +972,21 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
 
       {/* ── Verdict overlay ── */}
       {verdictOverlay && (
-        <div className={`verdict-overlay verdict-overlay--${verdictOverlay}`}>
+        <div className={`verdict-overlay verdict-overlay--${verdictOverlay.type}`}>
           <div className="verdict-overlay-text">
-            {verdictOverlay === 'correct'
-              ? randomFrom(CORRECT_TEXTS)
-              : randomFrom(WRONG_TEXTS)}
+            {verdictOverlay.text}
+          </div>
+        </div>
+      )}
+
+      {/* ── Mission briefing overlay ── */}
+      {briefingActive && (
+        <div className="briefing-overlay">
+          <div className="briefing-scanline" />
+          <div className="briefing-stamp">
+            <span className="briefing-stamp-dot" />
+              {randomFrom(BRIEFING_TEXTS)}
+            <span className="briefing-stamp-dot" />
           </div>
         </div>
       )}
@@ -935,10 +1093,11 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
                           <div className="twin-spinner">
                             <div className="twin-ring ring-a" />
                             <div className="twin-ring ring-b" />
-                            <Sparkles size={16} />
+                            <div className="twin-ring-c" />
+                            <span className="twin-spinner-icon"><Bot size={20} /></span>
                           </div>
-                          <div className="avatar-generating-title">Building your AI Twin…</div>
-                          <div className="small">Applying style and rendering avatar.</div>
+                          <div className="avatar-generating-title">Creating your AI Twin…</div>
+                          <LoadingQuip quips={AVATAR_QUIPS} />
                         </div>
                       )}
                     </div>
@@ -970,7 +1129,7 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
           role="dialog"
           aria-modal="true"
           aria-label="Scoring results"
-          onClick={(e) => { if (e.target === e.currentTarget) setShowResultsDialog(false); }}
+          onClick={(e) => { if (e.target === e.currentTarget) { setShowResultsDialog(false); setShowJudgingPanel(true); } }}
         >
           <div className="results-modal">
 
@@ -983,7 +1142,7 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
                 </h2>
                 <div className="results-modal-subtitle">{scenario.title}</div>
               </div>
-              <button className="results-close-btn" type="button" onClick={() => setShowResultsDialog(false)} aria-label="Close">✕</button>
+              <button className="results-close-btn" type="button" onClick={() => { setShowResultsDialog(false); setShowJudgingPanel(true); }} aria-label="Close">✕</button>
             </div>
 
             {/* Body */}
@@ -994,11 +1153,12 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
                     <div className="twin-spinner twin-spinner-lg">
                       <div className="twin-ring ring-a" />
                       <div className="twin-ring ring-b" />
-                      <Sparkles size={18} />
+                      <div className="twin-ring-c" />
+                      <span className="twin-spinner-icon">🧠</span>
                     </div>
                   </div>
-                  <div className="score-loading-title">Analysing your decision…</div>
-                  <div className="small" style={{ marginTop: 4 }}>Comparing your choices to a typical {role}'s response.</div>
+                  <div className="score-loading-title">Your Twin is on it…</div>
+                  <LoadingQuip quips={LOADING_QUIPS}/>
                 </div>
               ) : (
                 <>
@@ -1075,7 +1235,7 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
               >
                 ✎ Edit profile
               </button>
-              <button className="secondary-btn" type="button" onClick={() => setShowResultsDialog(false)}>
+              <button className="secondary-btn" type="button" onClick={() => { setShowResultsDialog(false); setShowJudgingPanel(true); }}>
                 Back to scenario
               </button>
             </div>

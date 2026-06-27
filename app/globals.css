@@ -431,6 +431,7 @@ input[type="range"]::-moz-range-thumb {
   overflow: hidden;
   transition: border-color .15s, box-shadow .15s;
   padding: 0;
+  position: relative;
 }
 .choice:hover:not(:disabled) {
   border-color: #378ADD;
@@ -542,14 +543,69 @@ input[type="range"]::-moz-range-thumb {
 .spin { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.twin-spinner { position: relative; width: 48px; height: 48px; display: grid; place-items: center; }
-.twin-ring { position: absolute; inset: 0; border-radius: 50%; border: 2px solid transparent; }
-.ring-a { border-top-color: var(--accent); animation: spin .9s linear infinite; }
-.ring-b { border-bottom-color: var(--accent-2); animation: spin 1.4s linear infinite reverse; inset: 6px; }
+/* Brain pulse spinner — three rings + pulsing brain emoji center */
+.twin-spinner {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+}
 
-.twin-spinner-lg { width: 60px; height: 60px; }
-.twin-spinner-lg .ring-a { border-width: 3px; animation-duration: .85s; }
-.twin-spinner-lg .ring-b { border-width: 3px; animation-duration: 1.3s; inset: 8px; }
+.twin-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2.5px solid transparent;
+}
+
+/* Outer ring — amber, clockwise */
+.ring-a {
+  border-top-color: var(--accent);
+  border-right-color: rgba(212,150,10,0.2);
+  animation: spin 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Middle ring — blue, counter-clockwise, faster */
+.ring-b {
+  inset: 8px;
+  border-bottom-color: var(--accent-2);
+  border-left-color: rgba(26,127,212,0.2);
+  animation: spin 0.75s cubic-bezier(0.4, 0, 0.6, 1) infinite reverse;
+}
+
+/* Inner ring — amber, clockwise, slowest */
+.twin-ring-c {
+  position: absolute;
+  inset: 16px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top-color: rgba(212,150,10,0.5);
+  animation: spin 1.4s linear infinite;
+}
+
+/* Center icon pulse */
+.twin-spinner-icon {
+  font-size: 18px;
+  animation: icon-pulse 1.2s ease-in-out infinite;
+  z-index: 1;
+  line-height: 1;
+}
+
+@keyframes icon-pulse {
+  0%, 100% { transform: scale(1);    opacity: 1; }
+  50%       { transform: scale(1.2); opacity: 0.7; }
+}
+
+/* Large variant */
+.twin-spinner-lg {
+  width: 80px;
+  height: 80px;
+}
+.twin-spinner-lg .ring-a  { border-width: 3px; animation-duration: .9s; }
+.twin-spinner-lg .ring-b  { inset: 10px; border-width: 3px; animation-duration: .7s; }
+.twin-spinner-lg .twin-ring-c { inset: 20px; border-width: 2.5px; }
+.twin-spinner-lg .twin-spinner-icon { font-size: 22px; }
 
 .score-loading {
   display: flex; flex-direction: column; align-items: center;
@@ -1502,23 +1558,13 @@ nextjs-portal { display: none !important; }
   100% { opacity: 0; }
 }
 
-.verdict-overlay--correct {
-  background: radial-gradient(ellipse at center,
-    rgba(74,222,128,0.25) 0%,
-    rgba(74,222,128,0.05) 60%,
-    transparent 100%);
+.verdict-overlay--correct .verdict-overlay-text {
+  color: #16a34a;
+  text-shadow: 0 0 40px rgba(74,222,128,0.4), 0 4px 16px rgba(0,0,0,0.1);
 }
-.verdict-overlay--partial {
-  background: radial-gradient(ellipse at center,
-    rgba(245,197,24,0.2) 0%,
-    rgba(245,197,24,0.04) 60%,
-    transparent 100%);
-}
-.verdict-overlay--wrong {
-  background: radial-gradient(ellipse at center,
-    rgba(239,68,68,0.15) 0%,
-    rgba(239,68,68,0.03) 60%,
-    transparent 100%);
+.verdict-overlay--wrong .verdict-overlay-text {
+  color: #dc2626;
+  text-shadow: 0 0 40px rgba(239,68,68,0.3), 0 4px 16px rgba(0,0,0,0.1);
 }
 
 .verdict-overlay-text {
@@ -1540,11 +1586,286 @@ nextjs-portal { display: none !important; }
   color: #16a34a;
   text-shadow: 0 0 40px rgba(74,222,128,0.4), 0 4px 16px rgba(0,0,0,0.1);
 }
-.verdict-overlay--partial .verdict-overlay-text {
-  color: #b45309;
-  text-shadow: 0 0 40px rgba(245,197,24,0.4), 0 4px 16px rgba(0,0,0,0.1);
-}
+
 .verdict-overlay--wrong .verdict-overlay-text {
   color: #dc2626;
   text-shadow: 0 0 40px rgba(239,68,68,0.3), 0 4px 16px rgba(0,0,0,0.1);
+}
+
+/* ── Mission briefing overlay ─────────────────────────────────────────────── */
+.briefing-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9990;
+  pointer-events: none;
+  background: rgba(10, 15, 35, 0.78);
+  animation: briefing-fade 1.4s ease forwards;
+}
+
+@keyframes briefing-fade {
+  0%   { opacity: 0; }
+  10%  { opacity: 1; }
+  65%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.briefing-scanline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(212,150,10,0.4) 20%,
+    rgba(212,150,10,0.95) 50%,
+    rgba(212,150,10,0.4) 80%,
+    transparent 100%
+  );
+  box-shadow:
+    0 0 12px 4px rgba(212,150,10,0.5),
+    0 0 40px 8px rgba(212,150,10,0.2);
+  animation: scanline-sweep 0.9s cubic-bezier(0.4, 0, 0.6, 1) 0.2s both;
+}
+
+@keyframes scanline-sweep {
+  from { top: 0%; }
+  to   { top: 100%; }
+}
+
+.briefing-stamp {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: rgba(212,150,10,0.95);
+  border: 1.5px solid rgba(212,150,10,0.5);
+  padding: 10px 24px;
+  border-radius: 4px;
+  background: rgba(20,14,0,0.7);
+  backdrop-filter: blur(4px);
+  animation: stamp-appear 1.4s ease forwards;
+  white-space: nowrap;
+}
+
+@keyframes stamp-appear {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.85); }
+  20%  { opacity: 1; transform: translate(-50%, -50%) scale(1.02); }
+  35%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  75%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.05); }
+}
+
+.briefing-stamp-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(212,150,10,0.95);
+  animation: dot-pulse 0.8s ease-in-out infinite alternate;
+  flex-shrink: 0;
+}
+
+@keyframes dot-pulse {
+  from { opacity: 0.4; transform: scale(0.8); }
+  to   { opacity: 1;   transform: scale(1.2); }
+}
+
+.scenario-content {
+  transition: filter 0.3s ease;
+}
+
+/* ── Verdict slot machine ──────────────────────────────────────────────────── */
+.verdict-slot {
+  display: inline-block;
+  transition: color 0.15s ease;
+  min-width: 200px;
+}
+
+.slot-spinning {
+  color: var(--muted);
+  animation: slot-flicker 0.08s ease infinite;
+}
+
+@keyframes slot-flicker {
+  0%   { opacity: 1;    transform: translateY(0px); }
+  40%  { opacity: 0.6;  transform: translateY(-2px); }
+  100% { opacity: 1;    transform: translateY(0px); }
+}
+
+.slot-settled {
+  animation: slot-land 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes slot-land {
+  0%   { 
+    transform: translateY(-8px) scale(1.04); 
+    opacity: 0.6;
+  }
+  60%  { 
+    transform: translateY(2px) scale(1.01); 
+    opacity: 1;
+  }
+  100% { 
+    transform: translateY(0) scale(1); 
+    opacity: 1;
+  }
+}
+
+/* Colour based on final verdict */
+.slot-settled[data-verdict="Strong balance"] {
+  color: #16a34a;
+}
+.slot-settled[data-verdict="Promising but exposed"] {
+  color: #d4960a;
+}
+.slot-settled[data-verdict="Needs tighter controls"] {
+  color: #dc2626;
+}
+
+/* ── Holographic pulse ─────────────────────────────────────────────────────── */
+.avatar-chip-wrap {
+  position: relative;
+}
+
+.chip-holo-rings {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  border-radius: 50%;
+}
+
+.holo-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid rgba(212, 150, 10, 0.7);
+  animation: holo-expand 1.2s ease-out forwards;
+}
+
+.holo-ring-1 {
+  width: 56px;
+  height: 56px;
+  animation-delay: 0s;
+}
+.holo-ring-2 {
+  width: 56px;
+  height: 56px;
+  animation-delay: 0.2s;
+  border-color: rgba(26, 127, 212, 0.5);
+}
+.holo-ring-3 {
+  width: 56px;
+  height: 56px;
+  animation-delay: 0.4s;
+  border-color: rgba(212, 150, 10, 0.3);
+}
+
+@keyframes holo-expand {
+  0%   {
+    transform: scale(1);
+    opacity: 0.9;
+    box-shadow: 0 0 0 0 rgba(212,150,10,0.4);
+  }
+  50%  {
+    box-shadow: 0 0 20px 4px rgba(212,150,10,0.2);
+  }
+  100% {
+    transform: scale(3.5);
+    opacity: 0;
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+/* Avatar chip glows during holo */
+.chip-holo .avatar-chip-img {
+  box-shadow:
+    0 0 0 3px rgba(212,150,10,0.6),
+    0 0 24px 8px rgba(212,150,10,0.3),
+    0 0 48px 16px rgba(26,127,212,0.15);
+  transition: box-shadow 0.2s ease;
+}
+
+/* Chip bubble changes to farewell tone during holo */
+.chip-holo .avatar-chip-bubble {
+  border-color: rgba(212,150,10,0.4);
+  background: rgba(255,248,235,0.95);
+  color: #8a6000;
+}
+
+.loading-quip {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-top: 10px;
+  text-align: center;
+  min-height: 20px;
+  letter-spacing: 0.01em;
+}
+
+/* ── Option reveal animations ──────────────────────────────────────────────── */
+
+/* Correct option — stamp in from above */
+.choice.correct-reveal {
+  animation: correct-stamp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes correct-stamp {
+  0%   { transform: scale(0.95) translateY(-4px); box-shadow: 0 0 0 0 rgba(29,158,117,0); }
+  50%  { transform: scale(1.03) translateY(0);    box-shadow: 0 0 0 6px rgba(29,158,117,0.2); }
+  100% { transform: scale(1)    translateY(0);    box-shadow: 0 0 0 3px rgba(29,158,117,0.12); }
+}
+
+/* Wrong option — quick shake */
+.choice.wrong-reveal {
+  animation: wrong-shake 0.45s ease both;
+}
+
+@keyframes wrong-shake {
+  0%   { transform: translateX(0); }
+  15%  { transform: translateX(-6px); }
+  30%  { transform: translateX(5px); }
+  45%  { transform: translateX(-4px); }
+  60%  { transform: translateX(3px); }
+  75%  { transform: translateX(-2px); }
+  100% { transform: translateX(0); }
+}
+
+/* Result icons — ✓ and ✗ */
+.choice-result-icon {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 900;
+  animation: icon-pop 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+  z-index: 2;
+}
+.choice-correct-icon {
+  background: #1D9E75;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(29,158,117,0.4);
+}
+.choice-wrong-icon {
+  background: #E24B4A;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(226,75,74,0.4);
+}
+
+@keyframes icon-pop {
+  from { transform: scale(0) rotate(-20deg); opacity: 0; }
+  60%  { transform: scale(1.2) rotate(5deg);  opacity: 1; }
+  to   { transform: scale(1)   rotate(0deg);  opacity: 1; }
 }

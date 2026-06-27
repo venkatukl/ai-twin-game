@@ -63,14 +63,14 @@ export async function POST(req: Request) {
   // Action worth 50%, sliders worth 50% — but sliders are secondary context
   const localScore = Math.max(20, Math.min(100, Math.round(aScore + sliderAvg * 0.5)));
 
-  const verdict = (s: number) =>
-    s >= 82 ? 'Strong balance' : s >= 62 ? 'Promising but exposed' : 'Needs tighter controls';
+  const verdict = (correct: boolean) =>
+    correct ? 'Strong balance' : 'Needs tighter controls';
 
   const gaps = topGaps(profile, bp, idealAiCost);
 
   const localFallback = {
     score: localScore,
-    verdict: verdict(localScore),
+    verdict: verdict(aScore === 50),
     coachNarrative: `You chose to ${action}; the recommended call was ${correctLabel}`,
     gaps,
     idealAction: scenario.correctOption,
@@ -106,8 +106,8 @@ SCORING RULES — follow these exactly:
 Return ONLY valid JSON — no markdown, no extra keys:
 {
   "score": <integer 0-100, following the rules above>,
-  "verdict": <exactly one of: "Strong balance" | "Promising but exposed" | "Needs tighter controls">,
-  "coachNarrative": "<2-3 sentences MAX. Never start with 'You chose' or 'Your action was' — lead immediately with the insight. Cover: was the action right or wrong and the single most important reason why, then the one key slider gap and its real implication. Hard limit: 45 words. If you exceed 45 words, rewrite shorter.>"
+  "verdict": <exactly one of: "Strong balance" | "Needs tighter controls">,
+  "coachNarrative": "<2-3 sentences. Never start with 'You chose' or 'Your action was' — lead immediately with the insight. Sentence 1: was the action right or wrong and the single most important reason why. Sentence 2: the one key slider gap and its real-world implication for this specific scenario. Sentence 3 (optional): one concrete takeaway they can remember. Hard limit: 75 words. Be direct, specific, and avoid generic advice.>"
 }`;
 
   try {
@@ -118,7 +118,7 @@ Return ONLY valid JSON — no markdown, no extra keys:
         model: GROQ_MODEL,
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.35,
-        max_tokens: 250,
+        max_tokens: 350,
         response_format: { type: 'json_object' },
       }),
     });
@@ -131,7 +131,7 @@ Return ONLY valid JSON — no markdown, no extra keys:
 
     return Response.json({
       score:           parsed.score           ?? localScore,
-      verdict:         parsed.verdict         ?? verdict(localScore),
+      verdict:         parsed.verdict         ?? verdict(aScore === 50),
       coachNarrative:  parsed.coachNarrative  ?? localFallback.coachNarrative,
       gaps,
       idealAction:     scenario.correctOption,
