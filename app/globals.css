@@ -1299,14 +1299,20 @@ input[type="range"]::-moz-range-thumb {
   gap: 14px;
 }
 .landing-brand {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
-  font-size: 14px;
+  gap: 12px;
+  font-size: clamp(14px, 1vw, 18px);
   font-weight: 800;
-  text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--accent-2);
+}
+.landing-brand-icon {
+  width: clamp(40px, 3vw, 64px);
+  height: clamp(40px, 3vw, 64px);
+
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 .landing-title {
   font-size: clamp(28px, 5vw, 42px);

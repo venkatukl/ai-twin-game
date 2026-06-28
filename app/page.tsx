@@ -4,6 +4,7 @@ import { Bot, Camera, CameraOff, LoaderCircle, Pencil, Sparkles } from 'lucide-r
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import scenarios from '@/data/scenarios.json';
 import { Maximize2, Minimize2 } from 'lucide-react';
+import Image from 'next/image';
 
 const GESTURE_ENABLED = process.env.NEXT_PUBLIC_GESTURE_ENABLED === 'true';
 
@@ -342,6 +343,7 @@ export default function HomePage() {
 
   const [sourceImageSrc,      setSourceImageSrc]      = useState<string | null>(null);
   const [avatarSrc,            setAvatarSrc]            = useState<string | null>(null);
+  const avatarRef = useRef<string | null>(null);
   const [isGeneratingAvatar,  setIsGeneratingAvatar]  = useState(false);
   const [isScoring,            setIsScoring]            = useState(false);
   const [scoringFailed,        setScoringFailed]        = useState(false);
@@ -418,7 +420,9 @@ export default function HomePage() {
   '/avatars/fallback-5.png',
   '/avatars/fallback-6.png'
 ];
-  const fallbackAvatarSrc = FALLBACK_POOL[Math.floor(Math.random() * FALLBACK_POOL.length)];
+  const fallbackAvatarSrc = useMemo(() => {
+    return FALLBACK_POOL[Math.floor(Math.random() * FALLBACK_POOL.length)];
+  }, []);
 
   const randomAvatarStyle = () =>
     avatarStyleOptions[Math.floor(Math.random() * avatarStyleOptions.length)].value;
@@ -461,6 +465,8 @@ export default function HomePage() {
     risk: setRisk, compliance: setCompliance, growth: setGrowth,
     aiTrust: setAiTrust, aiCost: setAiCost,
   };
+
+  
 
   useEffect(() => {
     setMounted(true);
@@ -643,7 +649,6 @@ export default function HomePage() {
     setSelectedImageBase64(base64);
     setSelectedMimeType('image/jpeg');
     setSourceImageSrc(dataUrl);
-    setAvatarSrc(null);
     stopCamera();
     // Auto-generate immediately using local variable — avoids stale state
     window.setTimeout(() => generateAvatar(base64, 'image/jpeg'), 900);
@@ -682,6 +687,7 @@ export default function HomePage() {
     const mimeType    = mimeOverride   ?? selectedMimeType;
     if (!imageBase64) return;
     setIsGeneratingAvatar(true);
+    let resolvedAvatar: string | null = null;
     try {
       const response = await fetch('/api/avatar', {
         method: 'POST',
@@ -695,25 +701,46 @@ export default function HomePage() {
         }),
       });
       const data = await response.json();
-      if (!response.ok)          { setAvatarSrc(fallbackAvatarSrc); return; }
-      if (data.avatarUrl)        setAvatarSrc(data.avatarUrl);
-      else if (data.imageBase64) setAvatarSrc(`data:${data.mimeType || 'image/png'};base64,${data.imageBase64}`);
-      else                       setAvatarSrc(fallbackAvatarSrc);
-    } catch { setAvatarSrc(fallbackAvatarSrc); }
-    finally  { 
-        setIsGeneratingAvatar(false);
-        // Auto-advance to game screen after brief avatar reveal
-        if (gameScreen === 'capture') {
-          setTimeout(() => {
-            completeSetup();
-          }, 1800); // show avatar for 1.8s then advance
-        }
-     }
-}
+      if (!response.ok) {
+        resolvedAvatar = fallbackAvatarSrc;
+        setAvatarSrc(fallbackAvatarSrc);
+        avatarRef.current = fallbackAvatarSrc;
+        return;
+      }
+      if (data.avatarUrl) {
+        resolvedAvatar = data.avatarUrl;
+        setAvatarSrc(data.avatarUrl);
+        avatarRef.current = data.avatarUrl;
+      } else if (data.imageBase64) {
+        const cleaned = (data.imageBase64 || '').replace(/\s+/g, '');
+        const finalAvatarUrl = `data:${data.mimeType || 'image/png'};base64,${cleaned}`;
+        resolvedAvatar = finalAvatarUrl;
+        setAvatarSrc(finalAvatarUrl);
+        avatarRef.current = finalAvatarUrl;
+      } else {
+        resolvedAvatar = fallbackAvatarSrc;
+        setAvatarSrc(fallbackAvatarSrc);
+        avatarRef.current = fallbackAvatarSrc;
+      }
+    } catch (e) {
+      resolvedAvatar = fallbackAvatarSrc;
+      setAvatarSrc(fallbackAvatarSrc);
+      avatarRef.current = fallbackAvatarSrc;
+    } finally  { 
+      setIsGeneratingAvatar(false);
+      // Auto-advance to game screen after brief avatar reveal
+      if (gameScreen === 'capture') {
+        setTimeout(() => {
+          completeSetup(resolvedAvatar);
+        }, 1800); // show avatar for 1.8s then advance
+      }
+    }
+  }
 
-  function completeSetup() {
+  function completeSetup(finalAvatar?: string | null) {
     stopCamera();
-    setAvatarSrc(avatarSrc || sourceImageSrc || fallbackAvatarSrc);
+    const finalAvatar2 = finalAvatar ?? avatarRef.current ?? avatarSrc ?? sourceImageSrc ?? fallbackAvatarSrc;
+    setAvatarSrc(finalAvatar2);
     setIsInitialized(true);
     setGameScreen('game');
     triggerBriefing();
@@ -777,6 +804,7 @@ export default function HomePage() {
     setAiCost(40);
     setAction('');
     setAvatarSrc(null);
+    avatarRef.current = null;
     setSourceImageSrc(null);
     setSelectedImageBase64(null);
     setIsInitialized(false);
@@ -1319,7 +1347,7 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
     <>
       <div className="landing-shell">       
         <div className="landing-card">
-          <div className="landing-brand"><Sparkles size={26} /> AI Twin Challenge</div>
+          <div className="landing-brand"><Image src="/ai-twin-icon.png" alt="AI Twin Challenge" width={128} height={128} className="landing-brand-icon" /> AI Twin Challenge</div>
           <h1 className="landing-title">Step into your AI persona.<br />Make the call.</h1>
 
           <div className="landing-gesture-hint">
@@ -1399,7 +1427,7 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
 
           {/* Header */}
           <div className="persona-header">
-            <div className="landing-brand"><Sparkles size={20} /> AI Twin Challenge</div>
+            <div className="landing-brand"><Image src="/ai-twin-icon.png" alt="AI Twin Challenge" width={128} height={128} className="landing-brand-icon" /> AI Twin Challenge</div>
             <div className="persona-step-indicator">Choose your role</div>
           </div>
 
@@ -1489,7 +1517,7 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
 
       {/* Ambient title */}
       <div className="capture-title-wrap">
-        <div className="landing-brand"><Sparkles size={20} /> AI Twin Challenge</div>
+        <div className="landing-brand"><Image src="/ai-twin-icon.png" alt="AI Twin Challenge" width={128} height={128} className="landing-brand-icon" /> AI Twin Challenge</div>
         <h2 className="capture-title">
           {isGeneratingAvatar ? 'Creating your AI Twin…' :
           avatarSrc ? 'Meet your Twin!' :

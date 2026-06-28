@@ -3,7 +3,12 @@ import type { ReactNode } from 'react';
 
 export const metadata = {
   title: 'AI Twin Challenge',
-  description: 'Professional hackathon game for risk, growth, compliance and AI decision making.'
+  description: 'What Would Your Twin Decide?',
+  icons: {
+    icon: '/ai-twin-icon.png',
+    shortcut: '/ai-twin-icon.png',
+    apple: '/ai-twin-icon.png',
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
