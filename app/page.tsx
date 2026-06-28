@@ -384,6 +384,9 @@ export default function HomePage() {
   const reactionTimeout   = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastGestureRef    = useRef<string | null>(null);
   const gestureHoldFrames = useRef(0);
+  const [autoRestartSeconds, setAutoRestartSeconds] = useState<number | null>(null);
+  const autoRestartRef    = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [guideExpanded, setGuideExpanded] = useState(false);
 
   const [gestureReady,    setGestureReady]    = useState(false);
   const [gestureError,    setGestureError]    = useState<string | null>(null);
@@ -505,6 +508,31 @@ export default function HomePage() {
     } else {
       stopCamera();
       cancelCountdown();
+    }
+  }, [gameScreen]);
+
+  useEffect(() => {
+    if (gameScreen === 'results') {
+      // Start 30s countdown
+      setAutoRestartSeconds(30);
+      let remaining = 30;
+      autoRestartRef.current = setInterval(() => {
+        remaining -= 1;
+        setAutoRestartSeconds(remaining);
+        if (remaining <= 0) {
+          clearInterval(autoRestartRef.current!);
+          autoRestartRef.current = null;
+          setAutoRestartSeconds(null);
+          resetGame();
+        }
+      }, 1000);
+    } else {
+      // Clean up if leaving results screen early
+      if (autoRestartRef.current) {
+        clearInterval(autoRestartRef.current);
+        autoRestartRef.current = null;
+      }
+      setAutoRestartSeconds(null);
     }
   }, [gameScreen]);
 
@@ -1067,11 +1095,26 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
         
         // Only trigger reaction on the 10th frame — gesture is stable
         if (gestureHoldFrames.current === 10) {
+
+          // Thumb up — enlarge guide
+            if (topGesture === 'Thumb_Up') {
+              setGuideExpanded(true);
+            }
+            // Victory — collapse guide
+            if (topGesture === 'Victory') {
+              setGuideExpanded(false);
+            }
+
           // if (topGesture === 'Open_Palm' && !dwellTarget.current) {
           //   triggerGestureReaction(randomFrom(PALM_REACTIONS));
           // }
-          if (topGesture === 'Victory') triggerGestureReaction(randomFrom(VICTORY_REACTIONS));
-          if (topGesture === 'Thumb_Up') triggerGestureReaction(randomFrom(THUMBUP_REACTIONS));
+          //if (topGesture === 'Victory') triggerGestureReaction(randomFrom(VICTORY_REACTIONS));
+          //if (topGesture === 'Thumb_Up') {
+            // Toggle guide AND show reaction
+            //setGuideExpanded(true);
+            //triggerGestureReaction(guideExpanded ? '👍 Guide closed!' : '👍 Enlarging guide!');
+          //}
+          //if (topGesture === 'Thumb_Up') triggerGestureReaction(randomFrom(THUMBUP_REACTIONS));
           //if (topGesture === 'Thumb_Down') triggerGestureReaction(randomFrom(THUMBDOWN_REACTIONS));
           if (topGesture === 'Closed_Fist') triggerGestureReaction(randomFrom(FIST_REACTIONS));
         }
@@ -1324,9 +1367,23 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
         </div>
       </div>
 
-      <div className="gesture-guide-image-wrap">
-        <img src="/gesture-guide.png" alt="Gesture guide" className="gesture-guide-image" />
-      </div>
+      <>
+        {guideExpanded && (
+          <div
+            className="gesture-guide-backdrop"
+            onClick={() => setGuideExpanded(false)}
+          />
+        )}
+        <div
+          className={`gesture-guide-image-wrap ${guideExpanded ? 'gesture-guide-expanded' : ''}`}
+          onClick={() => setGuideExpanded(false)}
+        >
+          <img src="/gesture-guide.png" alt="Gesture guide" className="gesture-guide-image" />
+          {!guideExpanded && (
+            <div className="gesture-guide-expand-hint">👍 to enlarge · ✌️ to close</div>
+          )}
+        </div>
+      </>
 
       {renderGestureCursor()}
       {renderGesturePanel()}
@@ -1483,11 +1540,10 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
         {/* Generating spinner */}
         {isGeneratingAvatar && (
           <div className="capture-generating">
-            <div className="twin-spinner twin-spinner-lg">
-              <div className="twin-ring ring-a" />
-              <div className="twin-ring ring-b" />
-              <div className="twin-ring-c" />
-              <span className="twin-spinner-icon"><Bot size={22} /></span>
+            <div className="capture-spinner">
+              <div className="capture-ring capture-ring-a" />
+              <div className="capture-ring capture-ring-b" />
+              <span className="capture-spinner-icon" style={{ fontSize: '28px' }}>🤖</span>
             </div>
             <div className="capture-generating-title">Creating your AI Twin…</div>
             <LoadingQuip quips={AVATAR_QUIPS} />
@@ -1589,8 +1645,10 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
   }
 
   function renderGesturePanel() {
-    return GESTURE_ENABLED ? (
-      <div className="gesture-panel">
+    if (!GESTURE_ENABLED) return null;
+    const isCompact = gameScreen === 'game' || gameScreen === 'results';
+    return (
+      <div className={`gesture-panel ${isCompact ? 'gesture-panel--compact' : ''}`}>
         <div className="gesture-panel__header">
           <span className="gesture-panel__title">👋 Gesture Control</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1631,7 +1689,7 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
               )}             
         </div>
       </div>
-    ) : null;
+    );
   }
 
   if (gameScreen === 'results') return (
@@ -1757,6 +1815,12 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
               Play again →
             </button>
           </div>
+
+          {autoRestartSeconds !== null && autoRestartSeconds <= 10 && (
+            <div className="auto-restart-hint">
+              Starting fresh in {autoRestartSeconds}s…
+            </div>
+          )}
 
         </div>
 

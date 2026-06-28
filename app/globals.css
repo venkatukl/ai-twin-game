@@ -3157,6 +3157,8 @@ button.gesture-target-active.slider-adj-btn {
   z-index: 1999;
   max-height: calc(100vh - 275px);
   overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.22,1,0.36,1);
 }
 
 @media (max-width: 1300px) {
@@ -3174,12 +3176,15 @@ button.gesture-target-active.slider-adj-btn {
 
 .gesture-reaction-overlay {
   position: fixed;
-  bottom: 80px;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 70px;           /* below fullscreen toggle */
+  left: 16px;          /* flush to left edge with small margin */
+  right: auto;
+  bottom: auto;
+  transform: none;     /* remove translateX */
   z-index: 9993;
   pointer-events: none;
-  animation: reaction-pop 1.8s ease forwards;
+  width: auto;
+  max-width: 260px;
 }
 
 @keyframes reaction-pop {
@@ -3190,14 +3195,17 @@ button.gesture-target-active.slider-adj-btn {
 }
 
 .gesture-reaction-text {
-  font-size: 22px;
-  font-weight: 900;
+  font-size: 15px;
+  font-weight: 800;
   color: #1a1000;
-  background: rgba(245,197,24,0.95);
-  padding: 10px 24px;
-  border-radius: 999px;
-  box-shadow: 0 4px 20px rgba(212,150,10,0.3);
-  white-space: nowrap;
+  background: rgba(245,197,24,0.97);
+  padding: 10px 16px;
+  border-radius: 12px;
+  text-align: left;     /* was center — left aligns with box edge */
+  white-space: nowrap;  /* prevents wrapping that causes clipping */
+  display: inline-block;
+  animation: reaction-appear 1.8s ease forwards;
+  border: 2px solid transparent;
 }
 
 .fullscreen-btn {
@@ -3381,4 +3389,105 @@ button.gesture-target-active.slider-adj-btn {
     justify-content: center;
     overflow-y: auto;        /* allow scroll if needed */
   }
+}
+
+.gesture-panel--compact {
+  width: 260px;
+  top: 12px;
+  right: 12px;
+}
+.gesture-panel--compact .gesture-panel__title { font-size: 9px; }
+.gesture-panel--compact .gesture-panel__camera { aspect-ratio: 16/9; }
+.gesture-panel--compact .gesture-panel__hint { font-size: 9px; }
+.gesture-panel--compact .gesture-panel__meta { padding: 6px 10px 8px; }
+.gesture-panel--compact .gesture-panel__header { padding: 6px 10px 5px; }
+
+
+.capture-spinner {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+}
+
+.capture-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid transparent;
+}
+
+.capture-ring-a {
+  border-top-color: rgba(255,255,255,0.9);
+  border-right-color: rgba(255,255,255,0.2);
+  animation: spin 1s cubic-bezier(0.4,0,0.6,1) infinite;
+}
+
+.capture-ring-b {
+  inset: 10px;
+  border-bottom-color: rgba(245,197,24,0.9);
+  border-left-color: rgba(245,197,24,0.2);
+  animation: spin 0.75s cubic-bezier(0.4,0,0.6,1) infinite reverse;
+}
+
+.capture-spinner-icon {
+  font-size: 24px;
+  animation: icon-pulse 1.2s ease-in-out infinite;
+  z-index: 1;
+}
+
+.capture-generating-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #ffffff;       /* white on dark background */
+  text-align: center;
+}
+
+/* LoadingQuip text — make white on dark */
+.capture-generating .loading-quip {
+  color: rgba(255,255,255,0.7);
+}
+
+.auto-restart-hint {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: center;
+  animation: fade-in 0.4s ease both;
+}
+
+
+.gesture-guide-expanded {
+  position: fixed;
+  top: 50%;
+  right: 50%;
+  transform: translate(50%, -50%);
+  width: min(600px, 80vw);
+  z-index: 9998;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.gesture-guide-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 9997;
+  backdrop-filter: blur(4px);
+  animation: fade-in 0.2s ease both;
+}
+
+.gesture-guide-expand-hint {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 15px;
+  font-weight: 900;
+  color: rgba(255,255,255,0.8);
+  background: rgba(0,0,0,0.5);
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
 }
