@@ -3,6 +3,7 @@
 import { Bot, Camera, CameraOff, LoaderCircle, Pencil, Sparkles } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import scenarios from '@/data/scenarios.json';
+import { Maximize2, Minimize2 } from 'lucide-react';
 
 const GESTURE_ENABLED = process.env.NEXT_PUBLIC_GESTURE_ENABLED === 'true';
 
@@ -190,42 +191,6 @@ const VERDICT_OPTIONS = [
   'Strong balance',
 ];
 
-function VerdictSlotMachine({ final }: { final: string }) {
-  const [displayed, setDisplayed]   = useState(VERDICT_OPTIONS[0]);
-  const [spinning,  setSpinning]    = useState(true);
-  const [settled,   setSettled]     = useState(false);
-
-  useEffect(() => {
-    setDisplayed(VERDICT_OPTIONS[0]);
-    setSpinning(true);
-    setSettled(false);
-
-    let cycles = 0;
-    const totalCycles = 10;
-    // Start fast, slow down toward the end
-    const delays = [60, 60, 80, 80, 100, 120, 150, 180, 220, 280];
-
-    function spin(i: number) {
-      if (i >= totalCycles) {
-        setDisplayed(final);
-        setSpinning(false);
-        setTimeout(() => setSettled(true), 100);
-        return;
-      }
-      setDisplayed(VERDICT_OPTIONS[i % VERDICT_OPTIONS.length]);
-      setTimeout(() => spin(i + 1), delays[i] ?? 280);
-    }
-
-    // Short delay before starting — let modal appear first
-    setTimeout(() => spin(0), 400);
-  }, [final]);
-
-  return (
-    <span className={`verdict-slot ${spinning ? 'slot-spinning' : ''} ${settled ? 'slot-settled' : ''}`} data-verdict={settled ? final : undefined} >
-      {displayed}
-    </span>
-  );
-}
 
 const AVATAR_QUIPS = [
   'Studying your best angles… 📐',
@@ -296,7 +261,81 @@ export default function HomePage() {
   const [aiTrust,    setAiTrust]    = useState(55);
   const [aiCost,     setAiCost]     = useState(40);
 
-  const [showLanding, setShowLanding] = useState(true);
+  const ROLES = [
+    { value: 'Head of Public Affairs',       emoji: '📢', short: 'Public Affairs' },
+    { value: 'Chief Risk Officer (CRO)',      emoji: '🛡️', short: 'Risk Officer' },
+    { value: 'Chief Financial Officer (CFO)', emoji: '💰', short: 'CFO' },
+    { value: 'Head of HR',                   emoji: '🤝', short: 'HR Head' },
+    { value: 'General Counsel (GC)',          emoji: '⚖️', short: 'Legal Counsel' },
+    { value: 'Chief Technology Officer (CTO)',emoji: '💻', short: 'CTO' },
+    { value: 'Head - Data & AI',             emoji: '🤖', short: 'Data & AI' },
+    { value: 'Head of Global Operations',    emoji: '🌍', short: 'Global Ops' },
+    { value: 'VP - Operations',              emoji: '⚙️', short: 'VP Operations' },
+  ];
+
+  // Default slider presets per role — auto-applied on selection
+  const ROLE_PRESETS: Record<string, { risk: number; compliance: number; growth: number; aiTrust: number; aiCost: number }> = {
+    'Head of Public Affairs':        { risk: 35, compliance: 70, growth: 55, aiTrust: 50, aiCost: 45 },
+    'Chief Risk Officer (CRO)':      { risk: 20, compliance: 90, growth: 30, aiTrust: 45, aiCost: 50 },
+    'Chief Financial Officer (CFO)': { risk: 40, compliance: 80, growth: 50, aiTrust: 55, aiCost: 60 },
+    'Head of HR':                    { risk: 35, compliance: 75, growth: 60, aiTrust: 60, aiCost: 45 },
+    'General Counsel (GC)':          { risk: 25, compliance: 95, growth: 35, aiTrust: 40, aiCost: 50 },
+    'Chief Technology Officer (CTO)':{ risk: 60, compliance: 55, growth: 80, aiTrust: 85, aiCost: 65 },
+    'Head - Data & AI':              { risk: 55, compliance: 60, growth: 75, aiTrust: 90, aiCost: 70 },
+    'Head of Global Operations':     { risk: 45, compliance: 75, growth: 60, aiTrust: 65, aiCost: 55 },
+    'VP - Operations':               { risk: 40, compliance: 70, growth: 55, aiTrust: 60, aiCost: 50 },
+  };
+
+  const FIST_REACTIONS = [
+    '✊ Power move!',
+    '🥊 Easy there, champ!',
+    '💪 We felt that!',
+    '✊ Hulk smash!',
+    '🤜 Knuckles detected!',
+  ];
+  
+  const PALM_REACTIONS = [
+    '🖐️ High five!',
+    '✋ Stop right there!',
+    '🖐️ Talk to the hand!',
+    '✋ Jazz hands!',
+    '🖐️ Whoa, calm down!',
+  ];
+
+  const VICTORY_REACTIONS = [
+    '✌️ Peace out!',
+    '✌️ Victory is yours!',
+    '🤞 Fingers crossed!',
+    '✌️ Two fingers, big decisions!',
+    '✌️ Nice V sign!',
+  ];
+
+  const THUMBUP_REACTIONS = [
+    '👍 You approve!',
+    '👍 Great enthusiasm!',
+    '👍 CEO energy!',
+    '👍 Board approves!',
+    '👍 That\'s the spirit!',
+  ];
+
+  const THUMBDOWN_REACTIONS = [
+    '👎 Harsh critic!',
+    '👎 The board disagrees!',
+    '👎 Rejected!',
+    '👎 Risk appetite: zero!',
+    '👎 CFO says no!',
+  ];
+
+  const [sliderAnimating, setSliderAnimating] = useState(false);
+  const sliderAnimRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const roleCardRefs = useRef<(HTMLButtonElement | null)[]>(
+    Array(ROLES.length).fill(null)
+  );
+  const btnPersonaNextRef = useRef<HTMLButtonElement | null>(null);
+
+  type GameScreen = 'landing' | 'persona' | 'capture' | 'game' | 'results';
+  const [gameScreen, setGameScreen] = useState<GameScreen>('landing');
 
   const [index,  setIndex]  = useState(() => Math.floor(Math.random() * scenarios.length));
   const [action, setAction] = useState('');
@@ -317,7 +356,7 @@ export default function HomePage() {
   const [mounted,              setMounted]              = useState(false);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [scoreStatus,          setScoreStatus]          = useState('Complete AI Twin setup to begin.');
-  const [setupOpen,            setSetupOpen]            = useState(true);
+  const [setupOpen,            setSetupOpen]            = useState(false);
   const [isInitialized,        setIsInitialized]        = useState(false);
   const [usedIndices,          setUsedIndices]          = useState<Set<number>>(() => new Set());
   const [chipBubble, setChipBubble] = useState<string | null>(null);
@@ -337,6 +376,14 @@ export default function HomePage() {
   const btnNextRef        = useRef<HTMLButtonElement | null>(null);
   const btnSubmitRef      = useRef<HTMLButtonElement | null>(null);
   const optionRefs        = useRef<(HTMLButtonElement | null)[]>([null, null, null, null]);
+  const btnLandingRef     = useRef<HTMLButtonElement | null>(null);
+  const btnRestartRef     = useRef<HTMLButtonElement | null>(null);
+  const sliderDecRefs     = useRef<(HTMLButtonElement | null)[]>(Array(5).fill(null));
+  const sliderIncRefs     = useRef<(HTMLButtonElement | null)[]>(Array(5).fill(null));
+  const [gestureReaction, setGestureReaction] = useState<string | null>(null);
+  const reactionTimeout   = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastGestureRef    = useRef<string | null>(null);
+  const gestureHoldFrames = useRef(0);
 
   const [gestureReady,    setGestureReady]    = useState(false);
   const [gestureError,    setGestureError]    = useState<string | null>(null);
@@ -357,6 +404,8 @@ export default function HomePage() {
   const dwellStart    = useRef<number | null>(null);
   const dwellGrace    = useRef<ReturnType<typeof setTimeout> | null>(null);  
   const DWELL_MS      = 2000;
+
+  const [isFullscreen, setIsFullscreen] = useState(false);
   
   const FALLBACK_POOL = [
   '/avatars/fallback-1.png',
@@ -371,7 +420,7 @@ export default function HomePage() {
   const randomAvatarStyle = () =>
     avatarStyleOptions[Math.floor(Math.random() * avatarStyleOptions.length)].value;
   const [avatarStyle, setAvatarStyle] = useState<AvatarStyleValue>(() => randomAvatarStyle());
-  useEffect(() => { if (setupOpen) setAvatarStyle(randomAvatarStyle()); }, [setupOpen]);
+  useEffect(() => { if (gameScreen === 'capture') setAvatarStyle(randomAvatarStyle()); }, [gameScreen]);
 
   const videoRef     = useRef<HTMLVideoElement | null>(null);
   const streamRef    = useRef<MediaStream | null>(null);
@@ -428,20 +477,61 @@ export default function HomePage() {
     }
   }, [setupOpen]);
 
+  
   useEffect(() => {
     if (!GESTURE_ENABLED) return;
-    if (!isInitialized || showResultsDialog || setupOpen || gesturePaused) {
+    if (gameScreen !== 'game' && gameScreen !== 'landing' && gameScreen !== 'persona' && gameScreen !== 'results') {
       stopGestureCamera();
       return;
     }
+    if (gesturePaused) { stopGestureCamera(); return; }
     startGestureCamera();
     return () => stopGestureCamera();
-  }, [GESTURE_ENABLED, isInitialized, showResultsDialog, setupOpen, gesturePaused]);
+  }, [GESTURE_ENABLED, gameScreen, gesturePaused]);
+
+  
+  useEffect(() => {
+    if (gameScreen === 'persona') {
+      setRisk(0); setCompliance(0); setGrowth(0); setAiTrust(0); setAiCost(0);
+      setTimeout(() => selectRole(role), 400);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameScreen]);
 
   useEffect(() => {
-    if (!GESTURE_ENABLED) return;
-    sessionStorage.setItem('gesture-paused', String(gesturePaused));
-  }, [gesturePaused]);
+    if (gameScreen === 'capture') {
+      // Small delay so screen renders first, then camera opens
+      setTimeout(() => startCamera(), 300);
+    } else {
+      stopCamera();
+      cancelCountdown();
+    }
+  }, [gameScreen]);
+
+
+  // Full - Screen toggle
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+  }
+
+  useEffect(() => {
+    function onFullscreenChange() {
+      setIsFullscreen(!!document.fullscreenElement);
+    }
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', onFullscreenChange);
+  }, []);
+
+
+  function triggerGestureReaction(text: string) {
+    if (reactionTimeout.current) clearTimeout(reactionTimeout.current);
+    setGestureReaction(text);
+    reactionTimeout.current = setTimeout(() => setGestureReaction(null), 1000);
+  }
 
   // ── Camera ──────────────────────────────────────────────────────────────────
   function stopCamera() {
@@ -560,42 +650,118 @@ export default function HomePage() {
   }, [videoReady]);
   
   async function generateAvatar(base64Override?: string, mimeOverride?: string) {
-  const imageBase64 = base64Override ?? selectedImageBase64;
-  const mimeType    = mimeOverride   ?? selectedMimeType;
-  if (!imageBase64) return;
-  setIsGeneratingAvatar(true);
-  try {
-    const response = await fetch('/api/avatar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        imageBase64,
-        mimeType,
-        persona:        `${personaName} | role=${role} | risk=${risk} | compliance=${compliance} | growth=${growth} | aiTrust=${aiTrust} | aiCost=${aiCost}`,
-        avatarStyleKey: avatarStyle,
-        fallbackAvatar: fallbackAvatarSrc,
-      }),
-    });
-    const data = await response.json();
-    if (!response.ok)          { setAvatarSrc(fallbackAvatarSrc); return; }
-    if (data.avatarUrl)        setAvatarSrc(data.avatarUrl);
-    else if (data.imageBase64) setAvatarSrc(`data:${data.mimeType || 'image/png'};base64,${data.imageBase64}`);
-    else                       setAvatarSrc(fallbackAvatarSrc);
-  } catch { setAvatarSrc(fallbackAvatarSrc); }
-  finally  { setIsGeneratingAvatar(false); }
+    const imageBase64 = base64Override ?? selectedImageBase64;
+    const mimeType    = mimeOverride   ?? selectedMimeType;
+    if (!imageBase64) return;
+    setIsGeneratingAvatar(true);
+    try {
+      const response = await fetch('/api/avatar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageBase64,
+          mimeType,
+          persona:        `${personaName} | role=${role} | risk=${risk} | compliance=${compliance} | growth=${growth} | aiTrust=${aiTrust} | aiCost=${aiCost}`,
+          avatarStyleKey: avatarStyle,
+          fallbackAvatar: fallbackAvatarSrc,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok)          { setAvatarSrc(fallbackAvatarSrc); return; }
+      if (data.avatarUrl)        setAvatarSrc(data.avatarUrl);
+      else if (data.imageBase64) setAvatarSrc(`data:${data.mimeType || 'image/png'};base64,${data.imageBase64}`);
+      else                       setAvatarSrc(fallbackAvatarSrc);
+    } catch { setAvatarSrc(fallbackAvatarSrc); }
+    finally  { 
+        setIsGeneratingAvatar(false);
+        // Auto-advance to game screen after brief avatar reveal
+        if (gameScreen === 'capture') {
+          setTimeout(() => {
+            completeSetup();
+          }, 1800); // show avatar for 1.8s then advance
+        }
+     }
 }
 
   function completeSetup() {
     stopCamera();
     setAvatarSrc(avatarSrc || sourceImageSrc || fallbackAvatarSrc);
     setIsInitialized(true);
+    setGameScreen('game');
     triggerBriefing();
     setChipBubble(randomFrom(CHIP_GREETINGS));
     setChipVisible(true);
-    setSetupOpen(false);
     setScoreStatus(`You are the ${role}. Read the scenario and make your call.`);
-    sessionStorage.removeItem('gesture-paused');
     setGesturePaused(false);
+  }
+
+  function selectRole(newRole: string) {
+    setRole(newRole);
+    const preset = ROLE_PRESETS[newRole];
+    if (!preset) return;
+
+    if (sliderAnimRef.current) clearInterval(sliderAnimRef.current);
+    setSliderAnimating(true);
+
+    const startRisk       = risk;
+    const startCompliance = compliance;
+    const startGrowth     = growth;
+    const startAiTrust    = aiTrust;
+    const startAiCost     = aiCost;
+
+    const steps = 45;
+    let step = 0;
+
+    sliderAnimRef.current = setInterval(() => {
+      step++;
+      const t    = step / steps;
+      const ease = 1 - Math.pow(1 - t, 3); // cubic ease-out
+
+      // Staggered start — each slider begins slightly later
+      setRisk(step < 3  ? startRisk       : Math.round(startRisk       + (preset.risk        - startRisk)       * Math.max(0, ease - 0.10)));
+      setCompliance(step < 5  ? startCompliance : Math.round(startCompliance + (preset.compliance - startCompliance) * Math.max(0, ease - 0.05)));
+      setGrowth(step < 7  ? startGrowth     : Math.round(startGrowth     + (preset.growth      - startGrowth)     * Math.max(0, ease)));
+      setAiTrust(step < 4  ? startAiTrust   : Math.round(startAiTrust   + (preset.aiTrust     - startAiTrust)    * Math.max(0, ease - 0.08)));
+      setAiCost(step < 6  ? startAiCost    : Math.round(startAiCost    + (preset.aiCost      - startAiCost)     * Math.max(0, ease - 0.12)));
+
+      if (step >= steps) {
+        clearInterval(sliderAnimRef.current!);
+        sliderAnimRef.current = null;
+        setSliderAnimating(false);
+        // Snap to exact values
+        setRisk(preset.risk);
+        setCompliance(preset.compliance);
+        setGrowth(preset.growth);
+        setAiTrust(preset.aiTrust);
+        setAiCost(preset.aiCost);
+      }
+    }, 20);
+  }
+
+  function resetGame() {
+    // Reset all game state to initial values
+    setGameScreen('landing');
+    setRole('Head of Public Affairs');
+    setRisk(35);
+    setCompliance(85);
+    setGrowth(70);
+    setAiTrust(55);
+    setAiCost(40);
+    setAction('');
+    setAvatarSrc(null);
+    setSourceImageSrc(null);
+    setSelectedImageBase64(null);
+    setIsInitialized(false);
+    setShowJudgingPanel(false);
+    setShowResultsDialog(false);
+    setServerScore(null);
+    setScoringFailed(false);
+    setChipVisible(false);
+    setChipBubble(null);
+    setUsedIndices(new Set());
+    setIndex(Math.floor(Math.random() * scenarios.length));
+    setGesturePaused(false);
+    stopGestureCamera();
   }
 
   const BRIEFING_TEXTS = [
@@ -756,6 +922,7 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
     setGestureActive(false);
     setActiveTarget(null);
     setDwellProgress(0);
+    setGestureReaction(null);
     dwellTarget.current = null;
     dwellStart.current  = null;
   }
@@ -852,12 +1019,27 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
 
       // Hit test buttons
       const buttons = [
-        { key: 'edit',   ref: btnEditRef },
-        { key: 'next',   ref: btnNextRef },
-        { key: 'submit', ref: btnSubmitRef },
+        { key: 'landing',      ref: btnLandingRef },
+        { key: 'persona-next', ref: btnPersonaNextRef },
+        { key: 'edit',         ref: btnEditRef },
+        { key: 'next',         ref: btnNextRef },
+        { key: 'submit',       ref: btnSubmitRef },
+        { key: 'restart',      ref: btnRestartRef },
+        ...ROLES.map((r, i) => ({
+          key: `role-${i}`,
+          ref: { current: roleCardRefs.current[i] },
+        })),
         ...scenario.options.map((opt, i) => ({
           key: `option-${opt.code}`,
           ref: { current: optionRefs.current[i] },
+        })),
+        ...Array.from({ length: 5 }, (_, i) => ({
+          key: `slider-dec-${i}`,
+          ref: { current: sliderDecRefs.current[i] },
+        })),
+        ...Array.from({ length: 5 }, (_, i) => ({
+          key: `slider-inc-${i}`,
+          ref: { current: sliderIncRefs.current[i] },
         })),
       ];
 
@@ -869,6 +1051,33 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
           smoothX.current >= r.left && smoothX.current <= r.right &&
           smoothY.current >= r.top  && smoothY.current <= r.bottom
         ) { hit = key; break; }
+      }
+
+      // Funny reactions for non-click gestures
+      const gestures = results.gestures?.[0];
+      const topGesture = gestures?.[0]?.categoryName;
+
+      if (topGesture && topGesture !== 'None') {
+        if (topGesture === lastGestureRef.current) {
+          gestureHoldFrames.current++;
+        } else {
+          lastGestureRef.current = topGesture;
+          gestureHoldFrames.current = 0;
+        }
+        
+        // Only trigger reaction on the 10th frame — gesture is stable
+        if (gestureHoldFrames.current === 10) {
+          // if (topGesture === 'Open_Palm' && !dwellTarget.current) {
+          //   triggerGestureReaction(randomFrom(PALM_REACTIONS));
+          // }
+          if (topGesture === 'Victory') triggerGestureReaction(randomFrom(VICTORY_REACTIONS));
+          if (topGesture === 'Thumb_Up') triggerGestureReaction(randomFrom(THUMBUP_REACTIONS));
+          //if (topGesture === 'Thumb_Down') triggerGestureReaction(randomFrom(THUMBDOWN_REACTIONS));
+          if (topGesture === 'Closed_Fist') triggerGestureReaction(randomFrom(FIST_REACTIONS));
+        }
+      } else {
+        lastGestureRef.current = null;
+        gestureHoldFrames.current = 0;
       }
 
       // Stable hover — require 4 consistent frames before committing
@@ -910,12 +1119,21 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
               setDwellProgress(0);
 
               const btn = buttons.find(b => b.key === hit)?.ref.current;
-              const label = hit === 'edit'   ? '✓ Edit profile'
-                          : hit === 'next'   ? '✓ Next scenario'
-                          : hit === 'submit' ? '✓ Submitting…'
-                          : hit?.startsWith('option-')
-                            ? `✓ Option ${hit.replace('option-', '')} selected`
-                            : '✓ Activating…';
+              const label = hit === 'landing'      ? '✓ Starting…'
+                : hit === 'persona-next' ? '✓ On to your photo!'
+                : hit === 'edit'         ? '✓ Edit profile'
+                : hit === 'next'         ? '✓ Next scenario'
+                : hit === 'submit'       ? '✓ Submitting…'
+                : hit === 'restart'      ? '✓ Play again'
+                : hit?.startsWith('role-')
+                  ? `✓ ${ROLES[parseInt(hit.replace('role-', ''))]?.short}`
+                : hit?.startsWith('option-')
+                  ? `✓ Option ${hit.replace('option-', '')} selected`
+                : hit?.startsWith('slider-dec-')
+                  ? `✓ Decreasing ${['Risk','Compliance','Growth','AI Trust','AI Cost'][parseInt(hit.replace('slider-dec-',''))]}`
+                : hit?.startsWith('slider-inc-')
+                  ? `✓ Increasing ${['Risk','Compliance','Growth','AI Trust','AI Cost'][parseInt(hit.replace('slider-inc-',''))]}`
+                : '✓ Activating…';
 
               setDwellFiring(label);
               setTimeout(() => {
@@ -987,7 +1205,7 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
     setTimeout(() => {
       setChipVisible(false);
       setChipBubble(null);
-      setShowResultsDialog(true);
+      setGameScreen('results');
     }, 1200);
 
     setIsScoring(true);
@@ -1045,7 +1263,6 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
     setServerScore(null);
     setShowJudgingPanel(false);
     setScoringFailed(false);
-    setShowResultsDialog(false);
     setAction('');
     setChipBubble(randomFrom(CHIP_GREETINGS));
     setChipVisible(true);
@@ -1055,603 +1272,635 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
 
   if (!mounted) return null;
 
-  if (showLanding) return (
-    <div className="landing-shell">
-      <div className="landing-card">
-        <div className="landing-brand"><Sparkles size={28} /> AI Twin Challenge</div>
-        <h1 className="landing-title">Step into your AI persona.<br />Make the call.</h1>
+  if (gameScreen === 'landing') return (
+    <>
+      <div className="landing-shell">       
+        <div className="landing-card">
+          <div className="landing-brand"><Sparkles size={26} /> AI Twin Challenge</div>
+          <h1 className="landing-title">Step into your AI persona.<br />Make the call.</h1>
 
-        <div className="landing-steps">
-          {[
-            { n: '1', label: 'Pick your role',            sub: 'Choose from CFO, CTO, General Counsel and more' },
-            { n: '2', label: 'Generate your avatar',      sub: 'Snap a photo — we turn it into a 3D caricature' },
-            { n: '3', label: 'Set your priorities',       sub: 'Adjust sliders for risk, compliance, growth & AI trust' },
-            { n: '4', label: 'Face the scenario',         sub: 'Read a chaotic AI situation and pick your response' },
-            { n: '5', label: 'See how your twin decides', sub: 'Get coached on what the ideal executive would have done' },
-          ].map((s) => (
-            <div className="landing-step" key={s.n}>
-              <div className="landing-step-n">{s.n}</div>
-              <div>
-                <div className="landing-step-label">{s.label}</div>
-                <div className="landing-step-sub">{s.sub}</div>
-              </div>
+          <div className="landing-gesture-hint">
+            <span className="landing-gesture-hint-icon">👋</span>
+            Use hand gestures to navigate — point your finger and hold still to select
+          </div>
+
+          <div className="landing-cards-row">
+
+            <div className="landing-step-card">
+              <div className="landing-step-card-number">1</div>
+              <div className="landing-step-card-icon">🧑‍💼</div>
+              <div className="landing-step-card-title">Select Role &amp;<br />Snap Your Photo.</div>
+              <div className="landing-step-card-sub">Choose your executive persona — we turn your face into a 3D caricature automatically.</div>
             </div>
-          ))}
-        </div>
 
-        <button
-          className="primary-btn landing-cta"
-          type="button"
-          onClick={() => { setShowLanding(false); setSetupOpen(true); }}
-        >
-          Build my AI Twin →
-        </button>
+            <div className="landing-step-card landing-step-card--mid">
+              <div className="landing-step-card-number">2</div>
+              <div className="landing-step-card-icon">🎚️</div>
+              <div className="landing-step-card-title">Set Executive<br />Priorities &amp; Risk.</div>
+              <div className="landing-step-card-sub">Tune your risk appetite, compliance, growth and AI trust to match your style.</div>
+            </div>
+
+            <div className="landing-step-card">
+              <div className="landing-step-card-number">3</div>
+              <div className="landing-step-card-icon">🎯</div>
+              <div className="landing-step-card-title">Play Scenario<br />&amp; Get Coached.</div>
+              <div className="landing-step-card-sub">Face real AI chaos. Make your call. See how your Twin would decide.</div>
+            </div>
+
+          </div>
+
+          <button
+            ref={btnLandingRef}
+            className="primary-btn landing-cta"
+            type="button"
+            onClick={() => setGameScreen('persona')}
+          >
+            Build my AI Twin →
+          </button>
+
+          <div className="landing-cta-hint">
+            Point at the button above and hold your finger still for 2 seconds to start
+          </div>
+        </div>
       </div>
-    </div>
+
+      <div className="gesture-guide-image-wrap">
+        <img src="/gesture-guide.png" alt="Gesture guide" className="gesture-guide-image" />
+      </div>
+
+      {renderGestureCursor()}
+      {renderGesturePanel()}
+      
+    </>
   );
 
-  // ── Render ───────────────────────────────────────────────────────────────────
-  return (
+  // ── Screen 2: Persona ────────────────────────────────────────────────────
+  if (gameScreen === 'persona') return (
     <>
-      <main className="page-shell">
-        {/* ── Header ── */}
-        <header className="header">
-          <div>
-            <div className="brand"><Sparkles size={22} /> AI Twin Challenge</div>
-            <div className="subtle">Step into your persona, face the scenario, and see how your decisions compare to the ideal.</div>
+      <div className="persona-shell">
+        <div className="persona-card">
+
+          {/* Header */}
+          <div className="persona-header">
+            <div className="landing-brand"><Sparkles size={20} /> AI Twin Challenge</div>
+            <div className="persona-step-indicator">Choose your role</div>
           </div>
-        </header>
 
-        <section className="grid">
-          {/* ── Left — Active AI Twin ── */}
-          <aside className="card left-card simplified-left-card">
-            <div className="section-title">Your AI Twin</div>
+          {/* Role grid */}
+          <div className="persona-roles-grid">
+            {ROLES.map((r, i) => (
+              <button
+                key={r.value}
+                ref={el => { roleCardRefs.current[i] = el; }}
+                type="button"
+                className={`persona-role-card ${role === r.value ? 'persona-role-card--selected' : ''}`}
+                onClick={() => selectRole(r.value)}
+              >
+                <span className="persona-role-emoji">{r.emoji}</span>
+                <span className="persona-role-label">{r.short}</span>
+                {role === r.value && <span className="persona-role-check">✓</span>}
+              </button>
+            ))}
+          </div>
 
-            <div className="active-avatar-card">
-              <div className="active-avatar-image-wrap">
-                <img className="active-avatar-image" src={resolvedAvatarSrc} alt="AI Twin avatar" />
-                <button
-                  className="avatar-edit-btn"
-                  type="button"
-                  onClick={() => setSetupOpen(true)}
-                  title="Re-open setup"
-                  aria-label="Edit twin"
-                >
-                  <Pencil size={11} />
-                </button>
-              </div>
-              <div className="active-avatar-meta">
-                <div className="active-avatar-name">{personaName}</div>
-                <div className="small">{role}</div>
-              </div>
+          {/* Sliders */}
+          <div className="persona-sliders-section">
+            <div className="persona-sliders-title">
+              Your priorities
+              <span className="sliders-hint-inline"> · auto-set for your role, adjust if needed</span>
             </div>
-
-            {/* Sliders */}
-            <div className="sliders-header">Your priorities <span className="sliders-hint-inline">· affects your score</span></div>
-            <div className="sliders-section">
-              {sliderConfig.map(({ key, label, min, max }) => (
-                <div className="slider-row" key={key}>
-                  <div className="slider-label-row">
-                    <span className="slider-name">{label}</span>
-                    <span className="slider-value">{sliderValues[key]}</span>
+            <div className="persona-sliders-grid">
+              {[
+                { label: 'Risk appetite',      value: risk,       set: setRisk,       key: 'risk' },
+                { label: 'Compliance focus',   value: compliance, set: setCompliance, key: 'comp' },
+                { label: 'Growth drive',       value: growth,     set: setGrowth,     key: 'grow' },
+                { label: 'AI trust',           value: aiTrust,    set: setAiTrust,    key: 'ait' },
+                { label: 'AI cost discipline', value: aiCost,     set: setAiCost,     key: 'aic' },
+              ].map((s, si) => (
+                <div key={s.key} className={`persona-slider-row ${sliderAnimating ? 'slider-animating' : ''}`}>
+                  <div className="persona-slider-label-row">
+                    <span className="persona-slider-label">{s.label}</span>
+                    <span className="persona-slider-value">{s.value}</span>
                   </div>
-                  <input
-                    type="range"
-                    min={min}
-                    max={max}
-                    value={sliderValues[key]}
-                    onChange={(e) => sliderSetters[key](Number(e.target.value))}
-                    disabled={!isInitialized}
-                    style={{
-                      backgroundSize:  `${sliderValues[key]}% 100%`,
-                      backgroundImage: 'linear-gradient(90deg, rgba(247,201,72,.5) 0%, rgba(89,179,255,.5) 100%)',
-                      backgroundRepeat:'no-repeat',
-                    }}
-                  />
+                  <div className="persona-slider-controls">
+                    <button
+                      ref={el => { sliderDecRefs.current[si] = el; }}
+                      type="button"
+                      className="slider-adj-btn"
+                      onClick={() => s.set(Math.max(0, s.value - 10))}
+                      disabled={sliderAnimating}
+                    >−</button>
+                    <input
+                      type="range" min={0} max={100}
+                      value={s.value}
+                      className="input"
+                      onChange={e => s.set(Number(e.target.value))}
+                    />
+                    <button
+                      ref={el => { sliderIncRefs.current[si] = el; }}
+                      type="button"
+                      className="slider-adj-btn"
+                      onClick={() => s.set(Math.min(100, s.value + 10))}
+                      disabled={sliderAnimating}
+                    >+</button>
+                  </div>
                 </div>
               ))}
             </div>
-          </aside>
-
-          {/* ── Center — Scenario ── */}
-          <section className="card center-card">
-            <div className="scenario-content" key={scenario.id}>
-
-                <div className="scenario-briefing">
-                {/* Persona-in-role banner */}
-                {isInitialized && (
-                  <div className="persona-banner">
-                    You are the <strong>{role}</strong> — how do you respond?
-                  </div>
-                )}
-
-              <div className="scenario-tag">{scenario.personaFocus.join(' · ')}</div>
-                <h1 className="scenario-title">{scenario.title}</h1>
-                <p className="scenario-summary">{scenario.summary}</p>
-                <p className="scenario-situation">{scenario.situation}</p>
-              </div>
-
-              <div className="decision-zone">
-                <div className="decision-zone-header">
-                  <div className="decision-zone-label">What would you do as the {role}?</div>
-                  {isInitialized && chipVisible && (
-                    <div className={`avatar-chip-wrap${chipWiggle ? ' chip-wiggle' : ''}${holoActive ? ' chip-holo' : ''}`}>
-                      {chipBubble && (
-                        <div className="avatar-chip-bubble" key={chipBubble}>{chipBubble}</div>
-                      )}
-                      <img src={resolvedAvatarSrc} alt="Twin" className="avatar-chip-img" />
-                      {holoActive && (
-                        <div className="chip-holo-rings">
-                          <span className="holo-ring holo-ring-1" />
-                          <span className="holo-ring holo-ring-2" />
-                          <span className="holo-ring holo-ring-3" />
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-                  <div className="choice-grid">
-                    {scenario.options.map((opt, i) => (
-                      <button
-                        key={opt.code}
-                        ref={el => { optionRefs.current[i] = el; }}
-                        type="button"
-                        className={`choice ${
-                          action === opt.code ? 'active' : ''
-                        } ${
-                          showJudgingPanel && opt.code === scenario.correctOption ? 'correct' : ''
-                        } ${
-                          showJudgingPanel && action === opt.code && opt.code !== scenario.correctOption ? 'wrong' : ''
-                        }`}
-                        onClick={() => {
-                          setAction(opt.code);
-                          setChipBubble(randomFrom(CHIP_REACTIONS));
-                          setChipWiggle(true);
-                          window.setTimeout(() => {
-                            setChipWiggle(false);
-                          }, 700);
-                        }}
-                        disabled={!isInitialized || showJudgingPanel || briefingActive}
-                      >
-                        <span className="choice-code">{opt.code}</span>
-                        <span className="choice-label">{opt.label}</span>
-                        {showJudgingPanel && opt.code === scenario.correctOption && (
-                          <span className="choice-result-icon choice-correct-icon">✓</span>
-                        )}
-                        {showJudgingPanel && action === opt.code && opt.code !== scenario.correctOption && (
-                          <span className="choice-result-icon choice-wrong-icon">✗</span>
-                        )}                 
-                      </button>
-                    ))}
-                  </div>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="scenario-footer">
-              <div className="footer-note">{scoreStatus}</div>
-              <div className="scenario-actions">
-                <button
-                  className={`ghost-btn ${activeTarget === 'edit' ? 'gesture-target-active' : ''}`}
-                  ref={btnEditRef}
-                  type="button"
-                  onClick={() => setSetupOpen(true)}
-                  title="Edit your AI Twin profile"
-                >
-                  ✎ Edit profile
-                </button>
-                <button
-                  className={`secondary-btn ${activeTarget === 'next' ? 'gesture-target-active' : ''}`}
-                  ref={btnNextRef}
-                  type="button"
-                  onClick={nextScenario}
-                  disabled={!isInitialized || isScoring }
-                  title={showJudgingPanel ? 'Already scored — your round is complete' : undefined}
-                >
-                  Try another scenario
-                </button>
-
-                {showJudgingPanel && !isScoring ? (
-                  <button className="primary-btn" type="button" onClick={() => setShowResultsDialog(true)}>
-                    View my results
-                  </button>
-                ) : (
-                  <button
-                    className={`primary-btn ${activeTarget === 'submit' ? 'gesture-target-active' : ''}`}
-                    ref={btnSubmitRef}
-                    type="button"
-                    onClick={scoreRound}
-                    disabled={!isInitialized || isScoring || !action }
-                  >
-                    {isScoring
-                      ? <span className="btn-inline"><LoaderCircle size={15} className="spin" /> Asking your Twin…</span>
-                      : 'How would my Twin decide?'}
-                  </button>
-                )}
-              </div>              
-            </div>
-          </section>
-        </section>
-      </main>
-
-      {/* ── Verdict overlay ── */}
-      {verdictOverlay && (
-        <div className={`verdict-overlay verdict-overlay--${verdictOverlay.type}`}>
-          <div className="verdict-overlay-text">
-            {verdictOverlay.text}
           </div>
-        </div>
-      )}
 
-      {/* ── Mission briefing overlay ── */}
-      {briefingActive && (
-        <div className="briefing-overlay">
-          <div className="briefing-scanline" />
-          <div className="briefing-stamp">
-            <span className="briefing-stamp-dot" />
-              {randomFrom(BRIEFING_TEXTS)}
-            <span className="briefing-stamp-dot" />
-          </div>
+          {/* Next button */}
+          <button
+            ref={btnPersonaNextRef}
+            className="primary-btn persona-next-btn"
+            type="button"
+            onClick={() => setGameScreen('capture')}
+          >
+            Next — Capture your photo →
+          </button>
         </div>
-      )}
+      </div>
 
-      {/* ── Dwell firing overlay ── */}
-      {dwellFiring && (
-        <div className="dwell-firing-overlay">
-          <div className="dwell-firing-text">{dwellFiring}</div>
-        </div>
-      )}
+      {renderGestureCursor()}
+      {renderGesturePanel()}
+    </>
+  );
 
-      {/* ── Gesture screen cursor ── */}
-      {GESTURE_ENABLED && gestureActive && !gesturePaused && gestureCursor && (
-        <div
-          className={`gesture-cursor ${activeTarget ? 'gesture-cursor--hover' : ''}`}
-          style={{ left: gestureCursor.x, top: gestureCursor.y }}
-        >
-          <div className="gesture-cursor__ring" />
-          <div className="gesture-cursor__dot" />
-          {activeTarget && (
-            <div className="gesture-cursor__label">
-              {activeTarget === 'edit'    ? 'Edit profile'    :
-              activeTarget === 'next'    ? 'Next scenario'   :
-              activeTarget === 'submit'  ? 'Hold to submit'  :
-              activeTarget?.startsWith('option-')
-                ? `Option ${activeTarget.replace('option-', '')}`
-                : ''}
-            </div>
-          )}
-          {activeTarget && dwellProgress > 0 && (
-            <svg className="gesture-cursor__dwell" viewBox="0 0 44 44">
-              {/* Background track */}
-              <circle
-                cx="22" cy="22" r="20"
-                fill="none"
-                stroke="rgba(245,197,24,0.15)"
-                strokeWidth="3"
-              />
-              {/* Glowing fill arc */}
-              <circle
-                cx="22" cy="22" r="20"
-                fill="none"
-                stroke="rgba(245,197,24,1)"
-                strokeWidth="3.5"
-                strokeDasharray={`${2 * Math.PI * 20}`}
-                strokeDashoffset={`${2 * Math.PI * 20 * (1 - dwellProgress / 100)}`}
-                strokeLinecap="round"
-                transform="rotate(-90 22 22)"
-                style={{
-                  filter: 'drop-shadow(0 0 4px rgba(245,197,24,0.9))',
-                  transition: 'stroke-dashoffset 0.05s linear',
-                }}
-              />
-              {/* Center fill indicator — grows as progress increases */}
-              <circle
-                cx="22" cy="22"
-                r={`${(dwellProgress / 100) * 8}`}
-                fill="rgba(245,197,24,0.6)"
-              />
-            </svg>
-          )}
-        </div>
-      )}
+  // ── Screen 3: Capture ────────────────────────────────────────────────────
+  if (gameScreen === 'capture') return (
+    <div className="capture-shell">
 
-      {/* ── Gesture control panel ── */}
-      {GESTURE_ENABLED && isInitialized && !setupOpen && (
-        <div className="gesture-panel">
-          <div className="gesture-panel__header">
-            <span className="gesture-panel__title">👋 Gesture Control</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span className={`gesture-panel__status ${
-                gesturePaused ? 'is-paused' :
-                gestureReady  ? 'is-ready'  : 'is-waiting'
-              }`}>
-                {gesturePaused ? '⏸ Paused' : gestureReady ? '● Ready' : gestureError ? '✕ Error' : '◌ Loading…'}
-              </span>
-              <button
-                className="gesture-toggle-btn"
-                type="button"
-                onClick={() => setGesturePaused(p => !p)}
-                title={gesturePaused ? 'Enable gesture control' : 'Disable gesture control'}
-              >
-                {gesturePaused ? '▶' : '⏸'}
-              </button>
-            </div>
-          </div>
-          <div className="gesture-panel__camera">
+      {/* Ambient title */}
+      <div className="capture-title-wrap">
+        <div className="landing-brand"><Sparkles size={20} /> AI Twin Challenge</div>
+        <h2 className="capture-title">
+          {isGeneratingAvatar ? 'Creating your AI Twin…' :
+          avatarSrc ? 'Meet your Twin!' :
+          'Smile — your Twin is about to be born'}
+        </h2>
+      </div>
+
+      {/* Main preview area */}
+      <div className="capture-preview-wrap">
+        {/* Camera live feed */}
+        {cameraOpen && !selectedImageBase64 && (
+          <div className="capture-camera-stage">
             <video
-              ref={gestureVideoRef}
-              className="gesture-panel__video"
+              ref={videoRef}
               autoPlay playsInline muted
+              onCanPlay={() => setVideoReady(true)}
+              className="capture-video"
             />
-            <canvas ref={gestureCanvasRef} className="gesture-panel__canvas" />
+            {/* Countdown overlay */}
+            {countdown !== null && (
+              <div className="capture-countdown-overlay">
+                <div className="capture-countdown-number">{countdown}</div>
+                <div className="capture-countdown-label">Get ready…</div>
+              </div>
+            )}
+            {/* Face guide ring */}
+            <div className="capture-face-guide">
+              <span className="guide-corner guide-corner--tl" />
+              <span className="guide-corner guide-corner--tr" />
+              <span className="guide-corner guide-corner--bl" />
+              <span className="guide-corner guide-corner--br" />
+            </div>
           </div>
-          <div className="gesture-panel__meta">
-            {gestureError
-              ? <span className="gesture-panel__error">⚠ {gestureError}</span>
-              : <span className="gesture-panel__hint">
-                  Point at a button · Hold still 2s to activate
-                </span>
-            }
+        )}
+
+        {/* Captured photo — shown briefly before generation */}
+        {selectedImageBase64 && !isGeneratingAvatar && !avatarSrc && (
+          <div className="capture-photo-reveal">
+            <img
+              src={`data:${selectedMimeType};base64,${selectedImageBase64}`}
+              alt="Captured"
+              className="capture-photo-img"
+            />
+            <div className="capture-photo-label">Got it! Generating your Twin…</div>
+          </div>
+        )}
+
+        {/* Generating spinner */}
+        {isGeneratingAvatar && (
+          <div className="capture-generating">
+            <div className="twin-spinner twin-spinner-lg">
+              <div className="twin-ring ring-a" />
+              <div className="twin-ring ring-b" />
+              <div className="twin-ring-c" />
+              <span className="twin-spinner-icon"><Bot size={22} /></span>
+            </div>
+            <div className="capture-generating-title">Creating your AI Twin…</div>
+            <LoadingQuip quips={AVATAR_QUIPS} />
+          </div>
+        )}
+
+        {/* Avatar reveal */}
+        {avatarSrc && !isGeneratingAvatar && (
+          <div className="capture-avatar-reveal">
+            <img
+              src={avatarSrc}
+              alt="Your AI Twin"
+              className="capture-avatar-img"
+            />
+            <div className="capture-avatar-name">{personaName}</div>
+            <div className="capture-avatar-role">{role}</div>
+          </div>
+        )}        
+      </div>
+
+      {/* Separate overlay — sits above the preview box entirely */}
+      {avatarSrc && !isGeneratingAvatar && (
+        <div className="capture-avatar-entering">⚡ Entering the challenge…</div>
+      )}
+
+    </div>
+  );
+
+  function renderGestureCursor() {
+    return (
+      <>
+        <button
+          className="fullscreen-btn-fixed"
+          type="button"
+          onClick={toggleFullscreen}
+          title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+        >
+          {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+        </button>
+        {dwellFiring && (
+          <div className="dwell-firing-overlay">
+            <div className="dwell-firing-text">{dwellFiring}</div>
+          </div>
+        )}
+        {gestureReaction && (
+          <div className="gesture-reaction-overlay">
+            <div className="gesture-reaction-text">{gestureReaction}</div>
+          </div>
+        )}
+        {GESTURE_ENABLED && gestureActive && !gesturePaused && gestureCursor && (
+          <div
+            className={`gesture-cursor ${activeTarget ? 'gesture-cursor--hover' : ''}`}
+            style={{ left: gestureCursor.x, top: gestureCursor.y }}
+          >
+            <div className="gesture-cursor__ring" />
+            <div className="gesture-cursor__dot" />
             {activeTarget && (
-              <span style={{ color: '#f7c948', fontWeight: 700 }}>
-                → {activeTarget === 'edit' ? 'Edit profile' : activeTarget === 'next' ? 'Next scenario' : 'Submit'}
-              </span>
+              <div className="gesture-cursor__label">
+                {activeTarget === 'submit'  ? 'Hold to submit'  :
+                activeTarget === 'restart' ? 'Play again' :
+                activeTarget?.startsWith('option-')
+                  ? `Option ${activeTarget.replace('option-', '')}` :
+                activeTarget?.startsWith('role-')
+                  ? ROLES[parseInt(activeTarget.replace('role-', ''))]?.short ?? '' :
+                activeTarget?.startsWith('slider-dec-')
+                  ? `− ${['Risk','Compliance','Growth','AI Trust','AI Cost'][parseInt(activeTarget.replace('slider-dec-',''))]}` :
+                activeTarget?.startsWith('slider-inc-')
+                  ? `+ ${['Risk','Compliance','Growth','AI Trust','AI Cost'][parseInt(activeTarget.replace('slider-inc-',''))]}` :
+                activeTarget === 'landing'      ? 'Start game' :
+                activeTarget === 'persona-next' ? 'Next — Capture photo' :
+                ''}
+              </div>
+            )}
+            {dwellProgress > 0 && (
+              <svg className="gesture-cursor__dwell" viewBox="0 0 44 44">
+                <circle
+                  cx="22" cy="22" r="20"
+                  fill="none"
+                  stroke="rgba(255,255,255,0.3)"
+                  strokeWidth="4"
+                />
+                <circle
+                  cx="22" cy="22" r="20"
+                  fill="none"
+                  stroke="#ffffff"
+                  strokeWidth="4"
+                  strokeDasharray={`${2 * Math.PI * 20}`}
+                  strokeDashoffset={`${2 * Math.PI * 20 * (1 - dwellProgress / 100)}`}
+                  strokeLinecap="round"
+                  transform="rotate(-90 22 22)"
+                  style={{ transition: 'stroke-dashoffset 0.05s linear' }}
+                />
+              </svg>
             )}
           </div>
+        )}
+      </>
+    );
+  }
+
+  function renderGesturePanel() {
+    return GESTURE_ENABLED ? (
+      <div className="gesture-panel">
+        <div className="gesture-panel__header">
+          <span className="gesture-panel__title">👋 Gesture Control</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span className={`gesture-panel__status ${gesturePaused ? 'is-paused' : gestureReady ? 'is-ready' : 'is-waiting'}`}>
+              {gesturePaused ? 'Paused' : gestureReady ? 'Ready' : gestureError ? 'Error' : 'Loading…'}
+            </span>
+            <button
+              className="gesture-toggle-btn"
+              type="button"
+              onClick={() => setGesturePaused(p => !p)}
+              title={gesturePaused ? 'Enable gesture' : 'Pause gesture'}
+            >
+              {gesturePaused ? '▶' : '⏸'}
+            </button>
+          </div>
         </div>
-      )}
-      
-      {/* ── Setup modal ── */}
-      {setupOpen && (
-        <div className="setup-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="setup-title" onClick={(e) => { if (e.target === e.currentTarget) { stopCamera(); setSetupOpen(false); } }}>
-          <div className="setup-modal">
-            <div className="setup-modal-header">
-              <div className="setup-kicker">Step 1 of 1</div>
-              <h2 id="setup-title">Build your AI Twin</h2>
-              <p>Choose your business persona, capture your photo, and generate your avatar before entering the challenge.</p>
-            </div>
+        <div className="gesture-panel__camera">
+          <video ref={gestureVideoRef} className="gesture-panel__video" autoPlay playsInline muted />
+          <canvas ref={gestureCanvasRef} className="gesture-panel__canvas" />
+        </div>
+        <div className="gesture-panel__meta">
+          {gestureError
+            ? <span className="gesture-panel__error">⚠ {gestureError}</span>
+            : <span className="gesture-panel__hint">👆 Point at a button · Hold still 2s to activate</span>
+              }
+              {activeTarget && (
+                <span style={{ color: '#1a5fa8', fontWeight: 700, fontSize: '11px' }}>
+                  → {activeTarget === 'landing'      ? 'Start game' :
+                    activeTarget === 'persona-next' ? 'Capture photo' :
+                    activeTarget === 'submit'       ? 'Submit' :
+                    activeTarget === 'restart'      ? 'Play again' :
+                    activeTarget?.startsWith('option-') ? `Option ${activeTarget.replace('option-', '')}` :
+                    activeTarget?.startsWith('role-')   ? ROLES[parseInt(activeTarget.replace('role-', ''))]?.short ?? activeTarget :
+                    activeTarget?.startsWith('slider-dec-') ? `− ${['Risk','Compliance','Growth','AI Trust','AI Cost'][parseInt(activeTarget.replace('slider-dec-',''))]}` :
+                    activeTarget?.startsWith('slider-inc-') ? `+ ${['Risk','Compliance','Growth','AI Trust','AI Cost'][parseInt(activeTarget.replace('slider-inc-',''))]}` :
+                    activeTarget}
+                </span>
+              )}             
+        </div>
+      </div>
+    ) : null;
+  }
 
-            <div className="setup-modal-body">
-              <div className="setup-grid">
-                {/* Left */}
-                <div className="setup-form">
-                  <div className="field-group">
-                    <label className="label" htmlFor="role-select">Business persona</label>
-                    <select id="role-select" className="select" value={role} onChange={(e) => setRole(e.target.value)}>
-                      <option value="Head of Public Affairs">Head of Public Affairs</option>
-                      <option value="Chief Risk Officer (CRO)">Chief Risk Officer (CRO)</option>
-                      <option value="Chief Financial Officer (CFO)">Chief Financial Officer (CFO)</option>
-                      <option value="Head of HR">Head of HR</option>
-                      <option value="General Counsel (GC)">General Counsel (GC)</option>
-                      <option value="Chief Technology Officer (CTO)">Chief Technology Officer (CTO)</option>
-                      <option value="Head - Data & AI">Head - Data & AI</option>
-                      <option value="Head of Global Operations">Head of Global Operations</option>
-                      <option value="VP - Operations">VP - Operations</option>
-                    </select>
-                  </div>
-                  <div style={{ display: 'none' }}>
-                    <label className="label" htmlFor="style-select">Avatar style</label>
-                    <select id="style-select" className="select" value={avatarStyle} onChange={(e) => setAvatarStyle(e.target.value as AvatarStyleValue)}>
-                      {avatarStyleOptions.map((o) => (
-                        <option key={o.value} value={o.value}>{o.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="setup-toolbar">
-                    <button className="icon-btn" type="button" onClick={cameraOpen ? stopCamera : startCamera} aria-label="Toggle camera" disabled={isGeneratingAvatar}>
-                      {cameraOpen ? <CameraOff size={15} /> : <Camera size={15} />}
-                    </button>
-                    <button className="secondary-btn compact-btn" type="button" onClick={() => { cancelCountdown(); capturePhoto(); }} disabled={!videoReady || isGeneratingAvatar}>
-                      {cameraOpen && !videoReady ? 'Starting…' : 'Capture now'}
-                    </button>
-                    <button className="primary-btn compact-btn" type="button" onClick={() => generateAvatar()} disabled={!selectedImageBase64 || isGeneratingAvatar}>
-                      {isGeneratingAvatar ? 'Generating…' : 'Generate avatar'}
-                    </button>
-                  </div>
-                </div>
+  if (gameScreen === 'results') return (
+    <>
+      <div className="results-shell">
 
-                {/* Right — preview */}
-                <div className="setup-preview">
-                  <div className="setup-preview-card">
-                    <div className="setup-preview-header">
-                      <span>Preview</span>
-                      <span className="preview-persona-name">{personaName}</span>
-                    </div>
-                    <div className="setup-preview-media">
-                      {cameraOpen ? (
-                        <div className="camera-stage">
-                          <video
-                            ref={videoRef}
-                            autoPlay playsInline muted
-                            onCanPlay={() => setVideoReady(true)}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                          />
-                          <div className="camera-guide">
-                            <div className="camera-guide-frame" ref={guideFrameRef} />
-                            <div className="camera-guide-text">Center your face in the frame</div>
-                          </div>
-                          {countdown !== null && (
-                            <div className="camera-countdown-overlay">
-                              <div className="camera-countdown-number">{countdown}</div>
-                              <div className="camera-countdown-label">Auto-capturing…</div>
-                              <button
-                                className="camera-countdown-cancel"
-                                type="button"
-                                onClick={cancelCountdown}
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          )}
-                          <button className="camera-close-btn" type="button" onClick={stopCamera} aria-label="Close camera">
-                            <CameraOff size={15} />
-                          </button>
-                        </div>
-                      ) : avatarSrc ? (
-                        <img className="setup-preview-image" src={avatarSrc} alt="Generated avatar" />
-                      ) : sourceImageSrc ? (
-                        <img className="setup-preview-image" src={sourceImageSrc} alt="Captured photo" />
-                      ) : (
-                        <div className="setup-empty">
-                          <Camera size={28} />
-                          <div>No photo yet</div>
-                          <div className="small">Open camera → capture → generate avatar</div>
-                        </div>
-                      )}
-                      {isGeneratingAvatar && (
-                        <div className="avatar-generating-overlay">
-                          <div className="twin-spinner">
-                            <div className="twin-ring ring-a" />
-                            <div className="twin-ring ring-b" />
-                            <div className="twin-ring-c" />
-                            <span className="twin-spinner-icon"><Bot size={20} /></span>
-                          </div>
-                          <div className="avatar-generating-title">Creating your AI Twin…</div>
-                          <LoadingQuip quips={AVATAR_QUIPS} />
-                        </div>
-                      )}
-                    </div>
-                    <div className="setup-preview-meta">
-                      <div className="active-avatar-name">{personaName}</div>
-                      <div className="small">{role}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="setup-modal-footer">
-              {isInitialized && (
-                <button className="secondary-btn" type="button" onClick={() => { stopCamera(); setSetupOpen(false); }}>Cancel</button>
-              )}
-              <button className="primary-btn" type="button" onClick={completeSetup}>
-                {isInitialized ? 'Save & resume' : 'Enter the challenge →'}
-              </button>
+        {/* Top bar — same as game screen 
+        <div className="game-topbar">
+          <div className="landing-brand"><Sparkles size={18} /> AI Twin Challenge</div>
+          <div className="game-topbar-twin">
+            <img src={resolvedAvatarSrc} alt="Twin" className="game-topbar-avatar" />
+            <div className="game-topbar-meta">
+              <div className="game-topbar-name">{personaName}</div>
+              <div className="game-topbar-role">{role}</div>
             </div>
           </div>
         </div>
-      )}
+        */}
 
-      {/* ── Results dialog ── */}
-      {showResultsDialog && (
-        <div
-          className="results-backdrop"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Scoring results"
-          onClick={(e) => { if (e.target === e.currentTarget) { setShowResultsDialog(false); setShowJudgingPanel(true); } }}
-        >
-          <div className="results-modal">
+        {/* Results card */}
+        <div className="results-screen-card">
 
-            {/* Header */}
-            <div className="results-modal-header">
-              <div>
-                <div className="setup-kicker">AI Verdict</div>
-                <h2 className="results-modal-title">
-                  {isScoring ? 'Judging your decision…' : activeScore.verdict}
-                </h2>
-                <div className="results-modal-subtitle">{scenario.title}</div>
-              </div>
-              <button className="results-close-btn" type="button" onClick={() => { setShowResultsDialog(false); setShowJudgingPanel(true); }} aria-label="Close">✕</button>
+          {/* Header */}
+          <div className="results-screen-header">
+            <div>
+              <div className="setup-kicker">AI Verdict</div>
+              <h2 className="results-modal-title">
+                {isScoring ? 'Judging your decision…' : activeScore.verdict}
+              </h2>
+              <div className="results-modal-subtitle">{scenario.title}</div>
             </div>
+          </div>
 
-            {/* Body */}
-            <div className="results-modal-body">
-              {isScoring ? (
-                <div className="score-loading" style={{ padding: '60px 20px' }}>
-                  <div className="score-spinner-wrap">
-                    <div className="twin-spinner twin-spinner-lg">
-                      <div className="twin-ring ring-a" />
-                      <div className="twin-ring ring-b" />
-                      <div className="twin-ring-c" />
-                      <span className="twin-spinner-icon">🧠</span>
-                    </div>
+          {/* Body */}
+          <div className="results-screen-body">
+            {isScoring ? (
+              <div className="score-loading">
+                <div className="score-spinner-wrap">
+                  <div className="twin-spinner twin-spinner-lg">
+                    <div className="twin-ring ring-a" />
+                    <div className="twin-ring ring-b" />
+                    <div className="twin-ring-c" />
+                    <span className="twin-spinner-icon">🧠</span>
                   </div>
-                  <div className="score-loading-title">Your Twin is on it…</div>
-                  <LoadingQuip quips={LOADING_QUIPS}/>
                 </div>
-              ) : (
-                <>
-                  {scoringFailed && (
-                    <div className="score-fallback-note small" style={{ marginBottom: 16 }}>
-                      ⚠ Live AI judging unavailable — showing estimated results.
-                    </div>
-                  )}
+                <div className="score-loading-title">Your Twin is on it…</div>
+                <LoadingQuip quips={LOADING_QUIPS} />
+              </div>
+            ) : (
+              <>
+                {scoringFailed && (
+                  <div className="score-fallback-note small" style={{ marginBottom: 16 }}>
+                    ⚠ Live AI judging unavailable — showing estimated results.
+                  </div>
+                )}
 
-                  {/* ── 1. Score hero ── */}
-                  <div className="results-hero">
-                    <div className="results-hero-left">
-                      {resolvedAvatarSrc && (
-                        <img
-                          src={resolvedAvatarSrc}
-                          alt="Your avatar"
-                          className="results-avatar"
-                        />
-                      )}
-                      <div className="results-avatar-name">{personaName}</div>
-                    </div>
-                    <div className="results-hero-right">
-                      <div className="results-action-compare">
-                        <div className="rac-col">
-                          <div className="rac-label">Your call</div>
-                          <div className="rac-value rac-value--user">
-                            {action
-                              ? (scenario.options.find(o => o.code === action)?.label ?? action)
-                              : '—'}
-                          </div>
+                {/* ── 1. Hero ── */}
+                <div className="results-hero">
+                  <div className="results-hero-left">
+                    {resolvedAvatarSrc && (
+                      <img src={resolvedAvatarSrc} alt="Your avatar" className="results-avatar" />
+                    )}
+                    <div className="results-avatar-name">{personaName}</div>
+                  </div>
+                  <div className="results-hero-right">
+                    <div className="results-action-compare">
+                      <div className="rac-col">
+                        <div className="rac-label">Your call</div>
+                        <div className="rac-value rac-value--user">
+                          {action
+                            ? (scenario.options.find(o => o.code === action)?.label ?? action)
+                            : '—'}
                         </div>
-                        <div className="rac-vs">vs</div>
-                        <div className="rac-col">
-                          <div className="rac-label">The Right Call</div>
-                          <div className="rac-value rac-value--ai">
-                            {scenario.options.find(o => o.code === scenario.correctOption)?.label ?? scenario.correctOption}
-                          </div>
+                      </div>
+                      <div className="rac-vs">vs</div>
+                      <div className="rac-col">
+                        <div className="rac-label">The Right Call</div>
+                        <div className="rac-value rac-value--ai">
+                          {scenario.options.find(o => o.code === scenario.correctOption)?.label ?? scenario.correctOption}
                         </div>
                       </div>
                     </div>
                   </div>
+                </div>
 
-                  {/* ── 2. Coach narrative ── */}
-                  <div className="results-section">
-                    <div className="results-section-title">Coach's take</div>
-                    <p className="results-narrative">
-                      <Typewriter text={activeScore.coachNarrative} />
-                    </p>
-                  </div>
+                {/* ── 2. Coach narrative ── */}
+                <div className="results-section">
+                  <div className="results-section-title">Coach's take</div>
+                  <p className="results-narrative">
+                    <Typewriter text={activeScore.coachNarrative} />
+                  </p>
+                </div>
 
-                  {/* ── 3. Key gaps — only shown when gaps exist ── */}
+                {/* ── 3. Profile gaps ── */}
+                {activeScore.gaps.length > 0 && (
                   <div className="results-section">
                     <div className="results-section-title">Your profile vs ideal {role}</div>
                     <div className="results-gaps">
                       {activeScore.gaps.map((g) => (
                         <div className="results-gap-row" key={g.label}>
                           <span className="results-gap-label">{g.label}</span>
-                          <span className="results-gap-nums">{g.user} <span className="results-gap-arrow">→</span> {g.ideal} ideal</span>
+                          <span className="results-gap-nums">
+                            {g.user} <span className="results-gap-arrow">→</span> {g.ideal} ideal
+                          </span>
                           <DeltaPill direction={g.direction} />
                         </div>
                       ))}
                     </div>
                   </div>
-                </>
-              )}
-            </div>
+                )}
+              </>
+            )}
+          </div>
 
-            {/* Footer */}
-            <div className="results-modal-footer">
-               <button
-                className={`ghost-btn ${activeTarget === 'edit' ? 'gesture-target-active' : ''}`}
-                type="button"
-                onClick={() => { setShowResultsDialog(false); setSetupOpen(true); }}
-              >
-                ✎ Edit profile
-              </button>
-              <button className="secondary-btn" type="button" onClick={() => { setShowResultsDialog(false); setShowJudgingPanel(true); }}>
-                Back to scenario
-              </button>
+          {/* Footer — single play again button */}
+          <div className="results-screen-footer">
+            <button
+              ref={btnRestartRef}
+              className={`primary-btn results-restart-btn ${activeTarget === 'restart' ? 'gesture-target-active' : ''}`}
+              type="button"
+              onClick={resetGame}
+            >
+              Play again →
+            </button>
+          </div>
+
+        </div>
+
+        {/* Verdict overlay fires on this screen */}
+        {verdictOverlay && (
+          <div className={`verdict-overlay verdict-overlay--${verdictOverlay.type}`}>
+            <div className="verdict-overlay-text">{verdictOverlay.text}</div>
+          </div>
+        )}
+
+        {renderGestureCursor()}
+        {renderGesturePanel()}
+
+      </div>
+    </>
+  );
+
+  // ── Render ───────────────────────────────────────────────────────────────────
+  return (
+    <>
+      <div className="game-shell">
+
+        {/* ── Top bar ── */}
+        <div className="game-topbar">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div className="landing-brand"><Sparkles size={18} /> AI Twin Challenge</div>
+          </div>
+          <div className="game-topbar-twin">
+            <img src={resolvedAvatarSrc} alt="Twin" className="game-topbar-avatar" />
+            <div className="game-topbar-meta">
+              <div className="game-topbar-name">{personaName}</div>
+              <div className="game-topbar-role">{role}</div>
             </div>
           </div>
         </div>
+
+        {/* ── Scenario card ── */}
+        <div className="game-scenario-card" key={scenario.id}>
+
+          {/* Briefing section */}
+          <div className="game-scenario-body">
+            <div className="persona-banner">
+              You are the <strong>{role}</strong> — how do you respond?
+            </div>
+            <div className="scenario-tag">{scenario.personaFocus.join(' · ')}</div>
+            <h1 className="scenario-title">{scenario.title}</h1>
+            <p className="scenario-summary">{scenario.summary}</p>
+            <p className="scenario-situation">{scenario.situation}</p>
+          </div>
+
+          {/* Decision zone */}
+          <div className="decision-zone">
+            <div className="decision-zone-header">
+              <div className="decision-zone-label">What would you do as the {role}?</div>
+              {isInitialized && chipVisible && (
+                <div className={`avatar-chip-wrap${chipWiggle ? ' chip-wiggle' : ''}${holoActive ? ' chip-holo' : ''}`}>
+                  {chipBubble && (
+                    <div className="avatar-chip-bubble" key={chipBubble}>{chipBubble}</div>
+                  )}
+                  <img src={resolvedAvatarSrc} alt="Twin" className="avatar-chip-img" />
+                  {holoActive && (
+                    <div className="chip-holo-rings">
+                      <span className="holo-ring holo-ring-1" />
+                      <span className="holo-ring holo-ring-2" />
+                      <span className="holo-ring holo-ring-3" />
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="choice-grid">
+              {scenario.options.map((opt, i) => (
+                <button
+                  key={opt.code}
+                  ref={el => { optionRefs.current[i] = el; }}
+                  type="button"
+                  className={`choice ${
+                    action === opt.code ? 'active' : ''
+                  } ${
+                    showJudgingPanel && opt.code === scenario.correctOption ? 'correct' : ''
+                  } ${
+                    showJudgingPanel && action === opt.code && opt.code !== scenario.correctOption ? 'wrong' : ''
+                  }`}
+                  onClick={() => {
+                    setAction(opt.code);
+                    setChipBubble(randomFrom(CHIP_REACTIONS));
+                    setChipWiggle(true);
+                    window.setTimeout(() => setChipWiggle(false), 700);
+                  }}
+                  disabled={!isInitialized || showJudgingPanel || briefingActive}
+                >
+                  <span className="choice-code">{opt.code}</span>
+                  <span className="choice-label">{opt.label}</span>
+                  {showJudgingPanel && opt.code === scenario.correctOption && (
+                    <span className="choice-result-icon choice-correct-icon">✓</span>
+                  )}
+                  {showJudgingPanel && action === opt.code && opt.code !== scenario.correctOption && (
+                    <span className="choice-result-icon choice-wrong-icon">✗</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Footer — single submit */}
+          <div className="scenario-footer-simple">
+            <div className="footer-note">{scoreStatus}</div>
+            <button
+              ref={btnSubmitRef}
+              className={`primary-btn scenario-submit-btn ${activeTarget === 'submit' ? 'gesture-target-active' : ''}`}
+              type="button"
+              onClick={scoreRound}
+              disabled={!isInitialized || isScoring || !action}
+            >
+              {isScoring
+                ? <span className="btn-inline"><LoaderCircle size={15} className="spin" /> Asking your Twin…</span>
+                : 'How would my Twin decide?'}
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      {/* ── Overlays ── */}
+      {verdictOverlay && (
+        <div className={`verdict-overlay verdict-overlay--${verdictOverlay.type}`}>
+          <div className="verdict-overlay-text">{verdictOverlay?.text}</div>
+        </div>
       )}
+      {briefingActive && (
+        <div className="briefing-overlay">
+          <div className="briefing-scanline" />
+          <div className="briefing-stamp">
+            <span className="briefing-stamp-dot" />
+            {randomFrom(BRIEFING_TEXTS)}
+            <span className="briefing-stamp-dot" />
+          </div>
+        </div>
+      )}
+
+      {renderGestureCursor()}
+      {renderGesturePanel()}     
+      
     </>
   );
 }
