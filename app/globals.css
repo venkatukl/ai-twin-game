@@ -1301,15 +1301,14 @@ input[type="range"]::-moz-range-thumb {
 .landing-brand {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  font-size: clamp(14px, 1vw, 18px);
+  gap: 14px;
+  font-size: clamp(15px, 1vw, 18px);
   font-weight: 800;
   letter-spacing: 0.08em;
 }
 .landing-brand-icon {
-  width: clamp(40px, 3vw, 64px);
-  height: clamp(40px, 3vw, 64px);
-
+  width: clamp(52px, 3vw, 64px);
+  height: clamp(52px, 3vw, 64px);
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
@@ -2901,14 +2900,14 @@ button.gesture-target-active.slider-adj-btn {
 }
 
 .game-topbar {
-  width: min(860px, calc(100% - 310px));
+  width: min(900px, calc(100vw - var(--gp) - 40px));
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 20px;
+  padding: clamp(10px, 1.2vh, 18px) clamp(14px, 1.5vw, 22px); 
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 20px;
+  border-radius: clamp(14px, 1.4vw, 22px);
   box-shadow: var(--shadow);
   flex-shrink: 0;
 }
@@ -2921,8 +2920,8 @@ button.gesture-target-active.slider-adj-btn {
 }
 
 .game-topbar-avatar {
-  width: 64px;
-  height: 64px;
+  width: clamp(64px, 5.5vw, 96px);
+  height: clamp(64px, 5.5vw, 96px);
   border-radius: 50%;
   object-fit: cover;
   border: 3px solid var(--accent);

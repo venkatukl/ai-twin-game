@@ -349,16 +349,13 @@ export default function HomePage() {
   const [scoringFailed,        setScoringFailed]        = useState(false);
   const [serverScore,          setServerScore]          = useState<ScoreResponse | null>(null);
   const [showJudgingPanel,     setShowJudgingPanel]     = useState(false);
-  const [showResultsDialog,    setShowResultsDialog]    = useState(false);
   const [selectedImageBase64,  setSelectedImageBase64]  = useState<string | null>(null);
   const [selectedMimeType,     setSelectedMimeType]     = useState('image/jpeg');
   const [cameraOpen,           setCameraOpen]           = useState(false);
   const [videoReady,           setVideoReady]           = useState(false);
   const [countdown,            setCountdown]            = useState<number | null>(null);
-  const [mounted,              setMounted]              = useState(false);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [scoreStatus,          setScoreStatus]          = useState('Complete AI Twin setup to begin.');
-  const [setupOpen,            setSetupOpen]            = useState(false);
   const [isInitialized,        setIsInitialized]        = useState(false);
   const [usedIndices,          setUsedIndices]          = useState<Set<number>>(() => new Set());
   const [chipBubble, setChipBubble] = useState<string | null>(null);
@@ -389,6 +386,7 @@ export default function HomePage() {
   const [autoRestartSeconds, setAutoRestartSeconds] = useState<number | null>(null);
   const autoRestartRef    = useRef<ReturnType<typeof setInterval> | null>(null);
   const [guideExpanded, setGuideExpanded] = useState(false);
+  const bgMusicRef = useRef<HTMLAudioElement | null>(null);
 
   const [gestureReady,    setGestureReady]    = useState(false);
   const [gestureError,    setGestureError]    = useState<string | null>(null);
@@ -469,24 +467,36 @@ export default function HomePage() {
   
 
   useEffect(() => {
-    setMounted(true);
     return () => {
       streamRef.current?.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
     };
+  }, [])
+
+  // play background music
+  useEffect(() => {
+    // Preload on mount so it's ready to play instantly
+    bgMusicRef.current = new Audio('/sounds/background-music.mp3');
+    bgMusicRef.current.loop = true;
+    bgMusicRef.current.volume = 0.15;
+    bgMusicRef.current.preload = 'auto';
+
+    // Play on first user interaction anywhere on the page
+    const startMusic = () => {
+      bgMusicRef.current?.play().catch(() => {});
+      document.removeEventListener('click', startMusic);
+      document.removeEventListener('keydown', startMusic);
+    };
+
+    document.addEventListener('click', startMusic);
+    document.addEventListener('keydown', startMusic);
+
+    return () => {
+      document.removeEventListener('click', startMusic);
+      document.removeEventListener('keydown', startMusic);
+    };
   }, []);
 
-  // Scroll modal body to top every time setup opens
-  useEffect(() => {
-    if (setupOpen) {
-      requestAnimationFrame(() => {
-        const body = document.querySelector('.setup-modal-body');
-        if (body) body.scrollTop = 0;
-      });
-    }
-  }, [setupOpen]);
-
-  
   useEffect(() => {
     if (!GESTURE_ENABLED) return;
     if (gameScreen !== 'game' && gameScreen !== 'landing' && gameScreen !== 'persona' && gameScreen !== 'results') {
@@ -643,9 +653,10 @@ export default function HomePage() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     ctx.drawImage(video, sx, sy, cropSize, cropSize, 0, 0, 1024, 1024);
-
+    
     const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
     const base64  = dataUrl.replace(/^data:image\/jpeg;base64,/, '');
+    playSound('camera-shutter-close.wav');
     setSelectedImageBase64(base64);
     setSelectedMimeType('image/jpeg');
     setSourceImageSrc(dataUrl);
@@ -809,15 +820,26 @@ export default function HomePage() {
     setSelectedImageBase64(null);
     setIsInitialized(false);
     setShowJudgingPanel(false);
-    setShowResultsDialog(false);
     setServerScore(null);
     setScoringFailed(false);
     setChipVisible(false);
     setChipBubble(null);
+    setVerdictOverlay(null);
     setUsedIndices(new Set());
     setIndex(Math.floor(Math.random() * scenarios.length));
     setGesturePaused(false);
     stopGestureCamera();
+  }
+
+  // ── Sound player ──────────────────────────────────────────────────────────────
+  function playSound(file: string, volume = 1, loop = false) {
+    try {
+      const audio = new Audio(`/sounds/${file}`);
+      audio.volume = volume;
+      audio.loop = loop;
+      audio.play().catch(() => {}); // silently ignore autoplay blocks
+      return audio;
+    } catch { return null; }
   }
 
   const BRIEFING_TEXTS = [
@@ -959,6 +981,10 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
       if (gestureVideoRef.current) {
         gestureVideoRef.current.srcObject = stream;
         gestureVideoRef.current.play();
+      }
+      // Camera permission granted = user interaction = safe to play audio
+      if (bgMusicRef.current && bgMusicRef.current.paused) {
+        bgMusicRef.current.play().catch(() => {});
       }
       await initMediaPipe();
       setGestureActive(true);
@@ -1125,26 +1151,24 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
         if (gestureHoldFrames.current === 10) {
 
           // Thumb up — enlarge guide
-            if (topGesture === 'Thumb_Up') {
-              setGuideExpanded(true);
-            }
-            // Victory — collapse guide
-            if (topGesture === 'Victory') {
-              setGuideExpanded(false);
-            }
+          if (topGesture === 'Thumb_Up') {
+            playSound('gesture-listen.wav');
+            setGuideExpanded(true);              
+          }
+          // Victory — collapse guide
+          if (topGesture === 'Victory') {
+            playSound('gesture-listen.wav');
+            setGuideExpanded(false);
+          }
 
-          // if (topGesture === 'Open_Palm' && !dwellTarget.current) {
-          //   triggerGestureReaction(randomFrom(PALM_REACTIONS));
-          // }
-          //if (topGesture === 'Victory') triggerGestureReaction(randomFrom(VICTORY_REACTIONS));
-          //if (topGesture === 'Thumb_Up') {
-            // Toggle guide AND show reaction
-            //setGuideExpanded(true);
-            //triggerGestureReaction(guideExpanded ? '👍 Guide closed!' : '👍 Enlarging guide!');
-          //}
-          //if (topGesture === 'Thumb_Up') triggerGestureReaction(randomFrom(THUMBUP_REACTIONS));
-          //if (topGesture === 'Thumb_Down') triggerGestureReaction(randomFrom(THUMBDOWN_REACTIONS));
-          if (topGesture === 'Closed_Fist') triggerGestureReaction(randomFrom(FIST_REACTIONS));
+          if (topGesture === 'Closed_Fist')  {
+            //playSound('gesture-listen.wav');
+            //triggerGestureReaction(randomFrom(FIST_REACTIONS));
+            //start initializing background music
+            if (bgMusicRef.current?.paused) {
+              bgMusicRef.current.play().catch(() => {});
+            }
+          }
         }
       } else {
         lastGestureRef.current = null;
@@ -1175,7 +1199,7 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
           // Moved to a new button — reset dwell timer
           dwellTarget.current = hit;
           dwellStart.current  = now;
-          setDwellProgress(0);
+          setDwellProgress(0);          
         } else {
           // Same button — accumulate dwell time regardless of minor jitter
           const elapsed  = now - (dwellStart.current ?? now);
@@ -1207,6 +1231,7 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
                 : '✓ Activating…';
 
               setDwellFiring(label);
+              playSound('mouse-click.wav');
               setTimeout(() => {
                 setDwellFiring(null);
                 btn?.click();
@@ -1263,21 +1288,36 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
   // ── Scoring ─────────────────────────────────────────────────────────────────
   async function scoreRound() {
     if (!isInitialized) return;
+    setVerdictOverlay(null);
 
-    const scoringStartTime = Date.now();
     const isCorrect = action.toUpperCase() === scenario.correctOption.toUpperCase();
     const overlayText = isCorrect ? randomFrom(CORRECT_TEXTS) : randomFrom(WRONG_TEXTS);
 
-    // Step 1 (0ms) — holo rings + farewell bubble
+    // Step 1 (0ms) — holo rings + farewell bubble + heartbeat 1, all together
     setChipBubble(randomFrom(CHIP_FAREWELL));
     triggerHolo();
+    playSound('heart-beat.wav', 1.0);             // beat 1 at 0ms
 
-    // Step 2 (1200ms) — hide chip, open modal with spinner
+    // Step 2 (1000ms) — heartbeat 2
+    setTimeout(() => {
+      playSound('heart-beat.wav', 1.0);           // beat 2 at 1000ms
+    }, 1000);
+
+    // Step 3 (2000ms) — hide chip + navigate to results
     setTimeout(() => {
       setChipVisible(false);
       setChipBubble(null);
-      setGameScreen('results');
-    }, 1200);
+      setGameScreen('results');                   // results at 2000ms
+    }, 2000);
+
+    // Step 4 (2800ms) — overlay + confetti on results screen
+    // judging panel set here so options only highlight after results loads
+    setTimeout(() => {
+      setShowJudgingPanel(true);
+      setVerdictOverlay({ type: isCorrect ? 'correct' : 'wrong', text: overlayText });
+      setTimeout(() => setVerdictOverlay(null), 2200);
+      if (isCorrect) launchConfetti();
+    }, 2800);
 
     setIsScoring(true);
     setScoringFailed(false);
@@ -1293,16 +1333,6 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
       if (!response.ok) throw new Error(data?.error || 'Scoring failed.');
       setServerScore(data);
       setScoreStatus('Results ready — see how you compared.');
-
-      // Fire overlay after modal has been visible minimum 1.5s
-      const elapsed = Date.now() - scoringStartTime;
-      const delay = Math.max(1500, 2600 - elapsed);
-      setTimeout(() => {
-        setVerdictOverlay({ type: isCorrect ? 'correct' : 'wrong', text: overlayText });
-        setTimeout(() => setVerdictOverlay(null), 2200);
-        if (isCorrect) launchConfetti();
-      }, delay);
-
     } catch (error) {
       console.error(error);
       setServerScore(null);
@@ -1340,8 +1370,6 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
     triggerBriefing();
     setScoreStatus(`You are the ${role}. Read the scenario and make your call.`);
   }
-
-  if (!mounted) return null;
 
   if (gameScreen === 'landing') return (
     <>
@@ -1851,18 +1879,22 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
           )}
 
         </div>
-
-        {/* Verdict overlay fires on this screen */}
-        {verdictOverlay && (
-          <div className={`verdict-overlay verdict-overlay--${verdictOverlay.type}`}>
-            <div className="verdict-overlay-text">{verdictOverlay.text}</div>
-          </div>
-        )}
-
+        
         {renderGestureCursor()}
         {renderGesturePanel()}
 
       </div>
+
+      {/* ── Verdict overlay — must be here in results screen return ── */}
+      {verdictOverlay && (
+        <div className={`verdict-overlay verdict-overlay--${verdictOverlay.type}`}>
+          <div className="verdict-overlay-text">{verdictOverlay.text}</div>
+        </div>
+      )}
+
+      {renderGestureCursor()}
+      {renderGesturePanel()}
+
     </>
   );
 
@@ -1974,11 +2006,6 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
       </div>
 
       {/* ── Overlays ── */}
-      {verdictOverlay && (
-        <div className={`verdict-overlay verdict-overlay--${verdictOverlay.type}`}>
-          <div className="verdict-overlay-text">{verdictOverlay?.text}</div>
-        </div>
-      )}
       {briefingActive && (
         <div className="briefing-overlay">
           <div className="briefing-scanline" />
