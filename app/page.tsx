@@ -386,7 +386,10 @@ export default function HomePage() {
   const [autoRestartSeconds, setAutoRestartSeconds] = useState<number | null>(null);
   const autoRestartRef    = useRef<ReturnType<typeof setInterval> | null>(null);
   const [guideExpanded, setGuideExpanded] = useState(false);
+  
   const bgMusicRef = useRef<HTMLAudioElement | null>(null);
+  const narrationRef = useRef<HTMLAudioElement | null>(null);
+  const narrationLoopRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [gestureReady,    setGestureReady]    = useState(false);
   const [gestureError,    setGestureError]    = useState<string | null>(null);
@@ -470,6 +473,7 @@ export default function HomePage() {
     return () => {
       streamRef.current?.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
+      stopGestureCamera();
     };
   }, [])
 
@@ -497,6 +501,7 @@ export default function HomePage() {
     };
   }, []);
 
+ 
   useEffect(() => {
     if (!GESTURE_ENABLED) return;
     if (gameScreen !== 'game' && gameScreen !== 'landing' && gameScreen !== 'persona' && gameScreen !== 'results') {
@@ -505,10 +510,31 @@ export default function HomePage() {
     }
     if (gesturePaused) { stopGestureCamera(); return; }
     startGestureCamera();
-    return () => stopGestureCamera();
+    // eslint-disable-next-line consistent-return
+    return;
   }, [GESTURE_ENABLED, gameScreen, gesturePaused]);
 
-  
+  useEffect(() => {
+    return () => { stopGestureCamera(); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (gameScreen === 'landing') {
+      // Start narration loop when user lands here
+      // Small delay to let background music start first
+      const t = setTimeout(() => startNarrationLoop(), 1000);
+      return () => {
+        clearTimeout(t);
+        stopNarrationLoop();
+      };
+    } else {
+      stopNarrationLoop();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameScreen]);
+
+
   useEffect(() => {
     if (gameScreen === 'persona') {
       setRisk(0); setCompliance(0); setGrowth(0); setAiTrust(0); setAiCost(0);
@@ -840,6 +866,54 @@ export default function HomePage() {
       audio.play().catch(() => {}); // silently ignore autoplay blocks
       return audio;
     } catch { return null; }
+  }
+
+  function fadeAudio(audio: HTMLAudioElement, targetVol: number, durationMs: number) {
+    const steps = 20;
+    const interval = durationMs / steps;
+    const delta = (targetVol - audio.volume) / steps;
+    let step = 0;
+    const timer = setInterval(() => {
+      step++;
+      audio.volume = Math.min(1, Math.max(0, audio.volume + delta));
+      if (step >= steps) clearInterval(timer);
+    }, interval);
+  }
+
+  function startNarrationLoop() {
+    function playOnce() {
+      const audio = new Audio('/sounds/narration.mpeg');
+      narrationRef.current = audio;
+      if (bgMusicRef.current) fadeAudio(bgMusicRef.current, 0.08, 600);
+      audio.play().catch(() => {});
+      audio.onended = () => {
+        narrationRef.current = null;
+        if (bgMusicRef.current) fadeAudio(bgMusicRef.current, 0.15, 800);
+        // Wait 3s then loop
+        narrationLoopRef.current = setTimeout(() => {
+          if (narrationRef.current === null) playOnce();
+        }, 15000);
+      };
+    }
+    // Start after 600ms delay
+    narrationLoopRef.current = setTimeout(playOnce, 600);
+  }
+
+  function stopNarrationLoop() {
+    // Cancel any pending loop timer
+    if (narrationLoopRef.current) {
+      clearTimeout(narrationLoopRef.current);
+      narrationLoopRef.current = null;
+    }
+    // Stop current narration
+    if (narrationRef.current) {
+      narrationRef.current.onended = null; // prevent loop from triggering
+      narrationRef.current.pause();
+      narrationRef.current.currentTime = 0;
+      narrationRef.current = null;
+    }
+    // Fade music back up
+    if (bgMusicRef.current) fadeAudio(bgMusicRef.current, 0.15, 600);
   }
 
   const BRIEFING_TEXTS = [
@@ -1412,7 +1486,10 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
             ref={btnLandingRef}
             className="primary-btn landing-cta"
             type="button"
-            onClick={() => setGameScreen('persona')}
+            onClick={() => {
+              stopNarrationLoop();
+              setGameScreen('persona');
+            }}
           >
             Build my AI Twin →
           </button>
@@ -1752,19 +1829,7 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
     <>
       <div className="results-shell">
 
-        {/* Top bar — same as game screen 
-        <div className="game-topbar">
-          <div className="landing-brand"><Sparkles size={18} /> AI Twin Challenge</div>
-          <div className="game-topbar-twin">
-            <img src={resolvedAvatarSrc} alt="Twin" className="game-topbar-avatar" />
-            <div className="game-topbar-meta">
-              <div className="game-topbar-name">{personaName}</div>
-              <div className="game-topbar-role">{role}</div>
-            </div>
-          </div>
-        </div>
-        */}
-
+        
         {/* Results card */}
         <div className="results-screen-card">
 
@@ -1879,9 +1944,6 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
           )}
 
         </div>
-        
-        {renderGestureCursor()}
-        {renderGesturePanel()}
 
       </div>
 
@@ -1906,7 +1968,10 @@ const WRONG_TEXTS    = ['Your Twin disagrees… 🤔', 'Tough call!', 'Not quite
         {/* ── Top bar ── */}
         <div className="game-topbar">
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div className="landing-brand"><Sparkles size={18} /> AI Twin Challenge</div>
+            <div className="landing-brand">
+              <Image src="/ai-twin-icon.png" alt="AI Twin Challenge" width={28} height={28} className="landing-brand-icon" />
+              AI Twin Challenge
+            </div>
           </div>
           <div className="game-topbar-twin">
             <img src={resolvedAvatarSrc} alt="Twin" className="game-topbar-avatar" />
